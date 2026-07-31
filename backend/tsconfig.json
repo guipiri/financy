@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "rootDirs": ["src"],
+    "outDir": "./dist",
+
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2023",
+    "esModuleInterop": true,
+    "lib": ["es2023"],
+    "types": ["node"],
+
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true
+  }
+}
