@@ -9,6 +9,12 @@ export class UserService {
   }
 
   async findUserById(id: string): Promise<User | null> {
-    return prisma.user.findUnique({ where: { id } });
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    if (!user) return null;
+
+    const { password, ...userWithoutPassword } = user;
+
+    return userWithoutPassword;
   }
 }

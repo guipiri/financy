@@ -7,12 +7,19 @@ import { buildSchema } from 'type-graphql';
 import { Container } from 'typedi';
 import { buildContext } from './graphql/context';
 import { AuthResolver } from './resolvers/auth.resolver';
+import { CategoryResolver } from './resolvers/category.resolver';
+import { TransactionResolver } from './resolvers/transaction.resolver';
 import { UserResolver } from './resolvers/user.resolver';
 
 const schema = await buildSchema({
-  resolvers: [AuthResolver, UserResolver],
+  resolvers: [
+    AuthResolver,
+    UserResolver,
+    TransactionResolver,
+    CategoryResolver,
+  ],
   container: Container,
-  validate: false,
+  validate: true,
   emitSchemaFile: './schema.graphql',
 });
 

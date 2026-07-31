@@ -3,18 +3,54 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+type Category {
+  color: String!
+  createdAt: DateTimeISO!
+  description: String!
+  iconKey: String!
+  id: String!
+  title: String!
+  updatedAt: DateTimeISO!
+  userId: String!
+}
+
+input CreateCategoryInput {
+  color: String!
+  description: String!
+  iconKey: String!
+  title: String!
+}
+
+input CreateTransactionInput {
+  amountInCents: Int!
+  categoryId: String!
+  date: DateTimeISO!
+  description: String!
+  type: TransactionType!
+}
+
 """
 A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.This scalar is serialized to a string in ISO 8601 format and parsed from a string in ISO 8601 format.
 """
 scalar DateTimeISO
 
 type Mutation {
+  createCategory(data: CreateCategoryInput!): Category!
+  createTransaction(data: CreateTransactionInput!): Transaction!
+  deleteCategory(id: String!): Boolean!
+  deleteTransaction(id: String!): Boolean!
   signIn(data: SignInInput!): SignInOutput!
   signUp(data: SignUpInput!): SignUpOutput!
+  updateCategory(data: UpdateCategoryInput!, id: String!): Category!
+  updateTransaction(data: UpdateTransactionInput!, id: String!): Transaction!
 }
 
 type Query {
+  categories: [Category!]!
+  category(id: String!): Category!
   fetchAll: [User!]!
+  transaction(id: String!): Transaction!
+  transactions: [Transaction!]!
 }
 
 input SignInInput {
@@ -38,6 +74,42 @@ type SignUpOutput {
   accessToken: String!
   refreshToken: String
   user: User!
+}
+
+type Transaction {
+  amountInCents: Int!
+  category: Category
+  categoryId: String!
+  createdAt: DateTimeISO!
+  date: DateTimeISO!
+  description: String!
+  id: String!
+  type: TransactionType!
+  updatedAt: DateTimeISO!
+  user: User!
+}
+
+"""
+Tipo da transação (INCOME ou EXPENSE)
+"""
+enum TransactionType {
+  EXPENSE
+  INCOME
+}
+
+input UpdateCategoryInput {
+  color: String
+  description: String
+  iconKey: String
+  title: String
+}
+
+input UpdateTransactionInput {
+  amountInCents: Int
+  categoryId: String
+  date: DateTimeISO
+  description: String
+  type: TransactionType
 }
 
 type User {

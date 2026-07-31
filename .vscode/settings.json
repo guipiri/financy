@@ -6,5 +6,8 @@
     "source.removeUnusedImports": "always"
   },
   "biome.requireConfiguration": true,
-  "files.autoSave": "afterDelay"
+  "files.autoSave": "afterDelay",
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  }
 }
