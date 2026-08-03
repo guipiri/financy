@@ -16,6 +16,9 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
+      "complexity": {
+        "noUselessFragments": "off"
+      },
       "a11y": {
         "noLabelWithoutControl": "off",
         "useAriaPropsSupportedByRole": "off"

@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Lock, LogIn, Mail, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, UserPlus } from 'lucide-react';
 import { type ChangeEvent, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { routes } from '@/App';
@@ -16,23 +16,24 @@ import { Field, Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSignUpMutation } from '@/hooks/api/useAuth';
-import { cn } from '@/lib/utils';
+import { useSignInMutation } from '@/hooks/api/useAuth';
 import { validateEmail, validatePassword } from '@/lib/validation';
 
-export function Signup() {
+export function Signin() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    email: localStorage.getItem('rememberedEmail') || '',
     password: '',
   });
+  const [rememberMe, setRememberMe] = useState(
+    !!localStorage.getItem('rememberedEmail'),
+  );
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
 
   const { login } = useAuth();
-  const { mutate: signUp, isPending } = useSignUpMutation();
+  const { mutate: signIn, isPending } = useSignInMutation();
 
   const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
@@ -43,22 +44,27 @@ export function Signup() {
     if (!isPasswordValid) setPasswordError(true);
     if (!isEmailValid || !isPasswordValid) return;
 
-    signUp(formData, {
+    signIn(formData, {
       onSuccess: (data) => {
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', formData.email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
         login(
-          data.signUp.user,
-          data.signUp.accessToken,
-          data.signUp.refreshToken,
+          data.signIn.user,
+          data.signIn.accessToken,
+          data.signIn.refreshToken,
         );
-        alert('Cadastro realizado com sucesso!');
+        alert('Login realizado com sucesso!');
         navigate(routes.dashboard.path);
       },
       onError: (err) => {
-        console.error('Signup error:', err);
+        console.error('Signin error:', err);
         const apiError =
           (err as unknown as { response: { errors: { message: string }[] } })
             .response?.errors?.[0]?.message ||
-          'Ocorreu um erro ao realizar o cadastro. Tente novamente.';
+          'Ocorreu um erro ao realizar o login. Tente novamente.';
         alert(apiError);
       },
     });
@@ -70,6 +76,11 @@ export function Signup() {
     if (name === 'email') {
       if (emailError) {
         setEmailError(!validateEmail(value));
+      }
+    }
+    if (name === 'password') {
+      if (passwordError) {
+        setPasswordError(!validatePassword(value));
       }
     }
   };
@@ -86,6 +97,10 @@ export function Signup() {
     }
   };
 
+  const handleForgotPassword = () => {
+    alert('Funcionalidade de recuperar senha em desenvolvimento.');
+  };
+
   return (
     <div className="min-h-screen w-full bg-muted/40 flex flex-col items-center sm:justify-center p-4 pt-12 sm:p-6 font-sans">
       {/* Brand Logo Header */}
@@ -93,33 +108,15 @@ export function Signup() {
         <img src={FinancyLogo} alt="Financy" className="h-8 w-auto" />
       </div>
 
-      {/* Signup Card */}
+      {/* Signin Card */}
       <Card className="w-full max-w-112">
         <CardHeader className="text-center mb-6 sm:mb-8">
-          <CardTitle>Criar conta</CardTitle>
-          <CardDescription>
-            Comece a controlar suas finanças ainda hoje
-          </CardDescription>
+          <CardTitle>Fazer login</CardTitle>
+          <CardDescription>Entre na sua conta para continuar</CardDescription>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Nome completo */}
-            <Field>
-              <Label htmlFor="name">Nome completo</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Seu nome completo"
-                value={formData.name}
-                onChange={handleChange}
-                startIcon={<User />}
-                required
-                disabled={isPending}
-              />
-            </Field>
-
             {/* E-mail */}
             <Field hasError={emailError}>
               <Label htmlFor="email">E-mail</Label>
@@ -127,8 +124,8 @@ export function Signup() {
                 id="email"
                 name="email"
                 type="email"
-                autoComplete="email"
                 placeholder="mail@exemplo.com"
+                autoComplete="email"
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={handleEmailBlur}
@@ -150,7 +147,7 @@ export function Signup() {
                 id="password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
-                autoComplete="new-password"
+                autoComplete="current-passwor"
                 placeholder="Digite sua senha"
                 value={formData.password}
                 onChange={handleChange}
@@ -171,15 +168,41 @@ export function Signup() {
                 disabled={isPending}
                 minLength={8}
               />
-              <p
-                className={cn(
-                  'text-xs pt-0.5 text-gray-500',
-                  passwordError && 'text-destructive',
-                )}
-              >
-                A senha deve ter no mínimo 8 caracteres
-              </p>
+              {passwordError && (
+                <p className="text-xs text-destructive pt-0.5">
+                  A senha deve ter no mínimo 8 caracteres
+                </p>
+              )}
             </Field>
+
+            {/* Lembrar-me & Recuperar senha */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  disabled={isPending}
+                  className="size-4 rounded border-border bg-card text-primary focus:ring-primary focus-visible:border-primary cursor-pointer accent-primary"
+                />
+                <label
+                  htmlFor="rememberMe"
+                  className="text-sm font-medium text-muted-foreground cursor-pointer select-none"
+                >
+                  Lembrar-me
+                </label>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={isPending}
+                className="text-sm font-medium text-primary hover:underline focus:outline-none transition-colors"
+              >
+                Recuperar senha
+              </button>
+            </div>
 
             {/* Submit Button */}
             <Button
@@ -188,7 +211,7 @@ export function Signup() {
               className="w-full mt-2 rounded-lg shadow-xs"
               disabled={isPending}
             >
-              {isPending ? 'Cadastrando...' : 'Cadastrar'}
+              {isPending ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
 
@@ -204,17 +227,19 @@ export function Signup() {
         </CardContent>
 
         <CardFooter className="flex-col space-y-4 text-center">
-          <p className="text-sm text-muted-foreground">Já tem uma conta?</p>
+          <p className="text-sm text-muted-foreground">
+            Ainda não tem uma conta?
+          </p>
           <Button
             type="button"
             size="icon-xl"
             variant="outline"
             className="w-full text-gray-700 rounded-lg flex items-center justify-center gap-2"
+            onClick={() => navigate(routes.signup.path)}
             disabled={isPending}
-            onClick={() => navigate(routes.signin.path)}
           >
-            <LogIn className="size-4 text-foreground" />
-            <span>Fazer login</span>
+            <UserPlus className="size-4 text-foreground" />
+            <span>Criar conta</span>
           </Button>
         </CardFooter>
       </Card>
@@ -222,4 +247,4 @@ export function Signup() {
   );
 }
 
-export default Signup;
+export default Signin;

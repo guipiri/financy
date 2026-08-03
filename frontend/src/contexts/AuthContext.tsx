@@ -1,5 +1,11 @@
-import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { graphqlClient } from '@/graphql/client';
 
 export interface User {
@@ -11,7 +17,11 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (userData: User, accessToken: string, refreshToken?: string | null) => void;
+  login: (
+    userData: User,
+    accessToken: string,
+    refreshToken?: string | null,
+  ) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -22,13 +32,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const login = useCallback(
+    (userData: User, accessToken: string, refreshToken?: string | null) => {
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('accessToken', accessToken);
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      }
+
+      graphqlClient.setHeader('Authorization', `Bearer ${accessToken}`);
+    },
+    [],
+  );
+
+  const logout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
+    graphqlClient.setHeader('Authorization', '');
+  }, []);
+
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const storedToken = localStorage.getItem('accessToken');
 
     if (storedUser && storedToken) {
       try {
-        setUser(JSON.parse(storedUser));
+        login(
+          JSON.parse(storedUser),
+          storedToken,
+          localStorage.getItem('refreshToken'),
+        );
       } catch (error) {
         console.error('Erro ao ler usuário do localStorage:', error);
         localStorage.removeItem('user');
@@ -37,27 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     setLoading(false);
-  }, []);
-
-  const login = (userData: User, accessToken: string, refreshToken?: string | null) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('accessToken', accessToken);
-    if (refreshToken) {
-      localStorage.setItem('refreshToken', refreshToken);
-    }
-
-    graphqlClient.setHeader('Authorization', `Bearer ${accessToken}`);
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-
-    graphqlClient.setHeader('Authorization', '');
-  };
+  }, [login]);
 
   const value = {
     user,
