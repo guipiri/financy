@@ -1,6 +1,7 @@
 import { Eye, EyeOff, Lock, Mail, UserPlus } from 'lucide-react';
 import { type ChangeEvent, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
 import { routes } from '@/App';
 import FinancyLogo from '@/assets/financy-logo.svg';
 import { Button } from '@/components/ui/button';
@@ -56,16 +57,15 @@ export function Signin() {
           data.signIn.accessToken,
           data.signIn.refreshToken,
         );
-        alert('Login realizado com sucesso!');
+        toast.success('Login realizado com sucesso!');
         navigate(routes.dashboard.path);
       },
       onError: (err) => {
-        console.error('Signin error:', err);
         const apiError =
           (err as unknown as { response: { errors: { message: string }[] } })
             .response?.errors?.[0]?.message ||
           'Ocorreu um erro ao realizar o login. Tente novamente.';
-        alert(apiError);
+        toast.error(apiError);
       },
     });
   };

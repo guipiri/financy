@@ -1,6 +1,7 @@
 import { Eye, EyeOff, Lock, LogIn, Mail, User } from 'lucide-react';
 import { type ChangeEvent, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
 import { routes } from '@/App';
 import FinancyLogo from '@/assets/financy-logo.svg';
 import { Button } from '@/components/ui/button';
@@ -50,16 +51,15 @@ export function Signup() {
           data.signUp.accessToken,
           data.signUp.refreshToken,
         );
-        alert('Cadastro realizado com sucesso!');
+        toast.success('Cadastro realizado com sucesso!');
         navigate(routes.dashboard.path);
       },
       onError: (err) => {
-        console.error('Signup error:', err);
         const apiError =
           (err as unknown as { response: { errors: { message: string }[] } })
             .response?.errors?.[0]?.message ||
           'Ocorreu um erro ao realizar o cadastro. Tente novamente.';
-        alert(apiError);
+        toast.error(apiError);
       },
     });
   };

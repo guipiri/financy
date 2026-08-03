@@ -2,8 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App from './App.tsx';
 import { AuthProvider } from '@/contexts/AuthContext';
+import App from './App.tsx';
+import { Toaster } from './components/ui/sonner.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +23,7 @@ createRoot(rootElement).render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <App />
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   </StrictMode>,
