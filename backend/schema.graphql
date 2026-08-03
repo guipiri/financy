@@ -89,9 +89,7 @@ type Transaction {
   user: User!
 }
 
-"""
-Tipo da transação (INCOME ou EXPENSE)
-"""
+"""Tipo da transação (INCOME ou EXPENSE)"""
 enum TransactionType {
   EXPENSE
   INCOME

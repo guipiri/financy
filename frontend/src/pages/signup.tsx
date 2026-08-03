@@ -13,6 +13,8 @@ import {
 import { Field, Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSignUpMutation } from '@/hooks/api/useAuth';
 import { cn } from '@/lib/utils';
 import { validateEmail, validatePassword } from '@/lib/validation';
 
@@ -26,14 +28,32 @@ export function Signup() {
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const { login } = useAuth();
+  const { mutate: signUp, isPending } = useSignUpMutation();
+
+  const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     const isEmailValid = validateEmail(formData.email);
-    if (!isEmailValid) {
-      setEmailError(true);
-      return;
-    }
-    console.log('Signup form submitted:', formData);
+    const isPasswordValid = validatePassword(formData.password);
+
+    if (!isEmailValid) setEmailError(true);
+    if (!isPasswordValid) setPasswordError(true);
+    if (!isEmailValid || !isPasswordValid) return;
+
+    signUp(formData, {
+      onSuccess: (data) => {
+        login(data.signUp.user, data.signUp.accessToken, data.signUp.refreshToken);
+        alert('Cadastro realizado com sucesso!');
+      },
+      onError: (err) => {
+        console.error('Signup error:', err);
+        const apiError =
+          (err as unknown as { response: { errors: { message: string }[] } })
+            .response?.errors?.[0]?.message ||
+          'Ocorreu um erro ao realizar o cadastro. Tente novamente.';
+        alert(apiError);
+      },
+    });
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +108,7 @@ export function Signup() {
                 onChange={handleChange}
                 startIcon={<User />}
                 required
+                disabled={isPending}
               />
             </Field>
 
@@ -104,6 +125,7 @@ export function Signup() {
                 onBlur={handleEmailBlur}
                 startIcon={<Mail />}
                 required
+                disabled={isPending}
               />
               {emailError && (
                 <p className="text-xs text-destructive pt-0.5">
@@ -130,11 +152,13 @@ export function Signup() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="p-1 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
                     aria-label={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+                    disabled={isPending}
                   >
                     {showPassword ? <EyeOff /> : <Eye />}
                   </button>
                 }
                 required
+                disabled={isPending}
                 minLength={8}
               />
               <p
@@ -152,8 +176,9 @@ export function Signup() {
               type="submit"
               size="icon-xl"
               className="w-full mt-2 rounded-lg shadow-xs"
+              disabled={isPending}
             >
-              Cadastrar
+              {isPending ? 'Cadastrando...' : 'Cadastrar'}
             </Button>
           </form>
 
@@ -175,6 +200,7 @@ export function Signup() {
             size="icon-xl"
             variant="outline"
             className="w-full text-gray-700 rounded-lg flex items-center justify-center gap-2"
+            disabled={isPending}
           >
             <LogIn className="size-4 text-foreground" />
             <span>Fazer login</span>
