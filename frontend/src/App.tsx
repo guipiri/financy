@@ -1,5 +1,7 @@
+import Signup from './pages/signup';
+
 function App() {
-  return <>Financy!</>;
+  return <Signup />;
 }
 
 export default App;
