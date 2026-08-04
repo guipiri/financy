@@ -2,35 +2,23 @@ import {
   ArrowDownCircle,
   ArrowRight,
   ArrowUpCircle,
-  BriefcaseBusiness,
-  CarFront,
   ChevronRight,
-  PiggyBank,
   Plus,
-  ShoppingCart,
-  Utensils,
   Wallet,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CategoryColorsMapper, CategoryIconsMapper } from '@/constants';
+import { useFetchTransactionsQuery } from '@/hooks/api/useTransactions';
 import { cn } from '@/lib/utils';
+import type { CategoryIcons, CategoryTones } from '@/types/category';
 
 type SummaryCard = {
   title: string;
   value: string;
   icon: typeof Wallet;
   iconClassName: string;
-};
-
-type Transaction = {
-  title: string;
-  date: string;
-  category: string;
-  categoryTone: 'blue' | 'green' | 'purple' | 'orange' | 'pink' | 'yellow';
-  amount: string;
-  amountTone: 'positive' | 'negative';
-  icon: typeof BriefcaseBusiness;
-  iconBgClassName: string;
 };
 
 type Category = {
@@ -58,59 +46,6 @@ const summaryCards: SummaryCard[] = [
     value: 'R$ 2.180,45',
     icon: ArrowDownCircle,
     iconClassName: 'text-red-base',
-  },
-];
-
-const transactions: Transaction[] = [
-  {
-    title: 'Pagamento de Salário',
-    date: '01/12/25',
-    category: 'Receita',
-    categoryTone: 'green',
-    amount: '+ R$ 4.250,00',
-    amountTone: 'positive',
-    icon: BriefcaseBusiness,
-    iconBgClassName: 'bg-green-light',
-  },
-  {
-    title: 'Jantar no Restaurante',
-    date: '30/11/25',
-    category: 'Alimentação',
-    categoryTone: 'blue',
-    amount: '- R$ 89,50',
-    amountTone: 'negative',
-    icon: Utensils,
-    iconBgClassName: 'bg-blue-light',
-  },
-  {
-    title: 'Posto de Gasolina',
-    date: '29/11/25',
-    category: 'Transporte',
-    categoryTone: 'purple',
-    amount: '- R$ 100,00',
-    amountTone: 'negative',
-    icon: CarFront,
-    iconBgClassName: 'bg-purple-light',
-  },
-  {
-    title: 'Compras no Mercado',
-    date: '28/11/25',
-    category: 'Mercado',
-    categoryTone: 'orange',
-    amount: '- R$ 156,80',
-    amountTone: 'negative',
-    icon: ShoppingCart,
-    iconBgClassName: 'bg-orange-light',
-  },
-  {
-    title: 'Retorno de Investimento',
-    date: '26/11/25',
-    category: 'Investimento',
-    categoryTone: 'green',
-    amount: '+ R$ 340,25',
-    amountTone: 'positive',
-    icon: PiggyBank,
-    iconBgClassName: 'bg-green-light',
   },
 ];
 
@@ -142,27 +77,14 @@ const categories: Category[] = [
   },
 ];
 
-const toneClasses: Record<Category['tone'], string> = {
-  blue: 'bg-blue-light text-blue-base',
-  green: 'bg-green-light text-green-base',
-  purple: 'bg-purple-light text-purple-base',
-  orange: 'bg-orange-light text-orange-base',
-  pink: 'bg-pink-light text-pink-base',
-  yellow: 'bg-yellow-light text-yellow-base',
-};
-
-function CategoryPill({
-  tone,
-  label,
-}: {
-  tone: Category['tone'];
-  label: string;
-}) {
+function CategoryPill({ tone, label }: { tone: CategoryTones; label: string }) {
+  const { resolvedTheme } = useTheme();
+  const theme = resolvedTheme === 'dark' ? 'dark' : 'light';
   return (
     <p
       className={cn(
         'items-center rounded-full px-3 py-1 text-sm font-medium truncate max-w-[100px] shrink-0 text-center',
-        toneClasses[tone],
+        CategoryColorsMapper[tone][theme],
       )}
     >
       {label}
@@ -181,6 +103,18 @@ function SummaryIcon({
 }
 
 function Dashboard() {
+  const { data: transactions, isLoading } = useFetchTransactionsQuery();
+
+  if (isLoading || !transactions) {
+    return (
+      <main className="min-h-screen bg-gray-100 text-foreground">
+        <div className="mx-auto flex flex-col md:grid md:grid-cols-3 md:grid-rows-[auto_1fr] w-full max-w-7xl gap-6 p-4 lg:p-12">
+          <p>Carregando...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 text-foreground">
       <div className="mx-auto flex flex-col md:grid md:grid-cols-3 md:grid-rows-[auto_1fr] w-full max-w-7xl gap-6 p-4 lg:p-12">
@@ -203,7 +137,7 @@ function Dashboard() {
           </Card>
         ))}
 
-        <Card className="col-span-2 overflow-hidden p-0 sm:p-0 shadow-xs">
+        <Card className="col-span-2 overflow-hidden p-0 sm:p-0 shadow-xs h-fit">
           <div className="flex items-center justify-between border-b border-border px-6 pb-[21px] pt-5">
             <p className="text-xs font-medium uppercase tracking-[0.06em] text-gray-500">
               Transações recentes
@@ -219,58 +153,78 @@ function Dashboard() {
           </div>
 
           <div className="divide-y divide-border">
-            {transactions.map((transaction) => (
-              <div
-                key={`${transaction.title}-${transaction.date}`}
-                className="flex min-h-20 items-center px-6 py-4"
-              >
-                <div className="flex flex-1 items-center gap-4 pr-4">
-                  <div
-                    className={cn(
-                      'flex size-10 shrink-0 items-center justify-center rounded-lg',
-                      transaction.iconBgClassName,
-                    )}
-                  >
-                    <transaction.icon
+            {transactions.transactions?.map((transaction) => {
+              const CatIcon =
+                CategoryIconsMapper[
+                  (transaction.category?.iconKey as CategoryIcons) ||
+                    'briefcase-business'
+                ];
+              const date = new Date(transaction.date as string);
+
+              return (
+                <div
+                  key={`${transaction.description}-${transaction.date}`}
+                  className="flex min-h-20 items-center px-6 py-4"
+                >
+                  <div className="flex flex-1 items-center gap-4 pr-4">
+                    <div
                       className={cn(
-                        'size-4',
-                        toneClasses[transaction.categoryTone],
+                        'flex size-10 shrink-0 items-center justify-center rounded-lg',
+                        CategoryColorsMapper[
+                          (transaction.category?.color as CategoryTones) ||
+                            'blue'
+                        ].light,
                       )}
+                    >
+                      <CatIcon
+                        className={cn(
+                          'size-4',
+                          CategoryColorsMapper[
+                            (transaction.category?.color as CategoryTones) ||
+                              'blue'
+                          ].light,
+                        )}
+                      />
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-medium leading-6 text-gray-800">
+                        {transaction.description}
+                      </p>
+                      <p className="text-sm leading-5 text-gray-600">
+                        {date.toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex w-[160px] justify-center px-4">
+                    <CategoryPill
+                      tone={
+                        (transaction.category?.color as CategoryTones) || 'blue'
+                      }
+                      label={transaction.category?.title || 'Sem categoria'}
                     />
                   </div>
 
-                  <div className="min-w-0">
-                    <p className="truncate text-base font-medium leading-6 text-gray-800">
-                      {transaction.title}
+                  <div className="flex w-[160px] items-center justify-end gap-2 px-4">
+                    <p className="text-sm font-semibold whitespace-nowrap text-gray-800">
+                      {transaction.amountInCents.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
                     </p>
-                    <p className="text-sm leading-5 text-gray-600">
-                      {transaction.date}
-                    </p>
+                    <ArrowRight
+                      className={cn(
+                        'size-4 shrink-0',
+                        transaction.type === 'INCOME'
+                          ? '-rotate-45 text-green-dark'
+                          : 'rotate-45 text-red-base',
+                      )}
+                    />
                   </div>
                 </div>
-
-                <div className="flex w-[160px] justify-center px-4">
-                  <CategoryPill
-                    tone={transaction.categoryTone}
-                    label={transaction.category}
-                  />
-                </div>
-
-                <div className="flex w-[160px] items-center justify-end gap-2 px-4">
-                  <p className="text-sm font-semibold whitespace-nowrap text-gray-800">
-                    {transaction.amount}
-                  </p>
-                  <ArrowRight
-                    className={cn(
-                      'size-4 shrink-0',
-                      transaction.amountTone === 'positive'
-                        ? '-rotate-45 text-green-dark'
-                        : 'rotate-45 text-red-base',
-                    )}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="border-t border-border px-6 py-5">
