@@ -6,9 +6,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CATEGORY_COLOR_OPTIONS, CATEGORY_ICON_OPTIONS } from '@/constants';
-import { useCreateCategoryMutation } from '@/hooks/api/useCreateCategory';
+import { useUpdateCategoryMutation } from '@/hooks/api/useUpdateCategory';
 import { cn } from '@/lib/utils';
 import type { CategoryIcons, CategoryTones } from '@/types/category';
+
+export interface CategoryToEdit {
+  id: string;
+  title: string;
+  description?: string | null;
+  color?: string | null;
+  iconKey?: string | null;
+}
+
+interface CategoryEditDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  category: CategoryToEdit | null;
+}
 
 const DEFAULT_FORM = {
   title: '',
@@ -17,39 +31,44 @@ const DEFAULT_FORM = {
   color: 'green' as CategoryTones,
 };
 
-interface CategoryCreateDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export function CategoryCreateDialog({
+export function CategoryEditDialog({
   open,
   onOpenChange,
-}: CategoryCreateDialogProps) {
+  category,
+}: CategoryEditDialogProps) {
   const [form, setForm] = useState(DEFAULT_FORM);
-  const { mutate: createCategory, isPending } = useCreateCategoryMutation();
+  const { mutate: updateCategory, isPending } = useUpdateCategoryMutation();
 
   useEffect(() => {
-    if (open) {
-      setForm(DEFAULT_FORM);
+    if (open && category) {
+      setForm({
+        title: category.title || '',
+        description: category.description || '',
+        iconKey: (category.iconKey as CategoryIcons) || 'briefcase-business',
+        color: (category.color as CategoryTones) || 'green',
+      });
     }
-  }, [open]);
+  }, [open, category]);
 
-  const canSubmit = form.title.trim().length >= 2 && !isPending;
+  const canSubmit = form.title.trim().length >= 2 && !isPending && !!category;
 
   const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!category) return;
 
-    createCategory(
+    updateCategory(
       {
-        title: form.title.trim(),
-        description: form.description.trim(),
-        color: form.color,
-        iconKey: form.iconKey,
+        id: category.id,
+        data: {
+          title: form.title.trim(),
+          description: form.description.trim(),
+          color: form.color,
+          iconKey: form.iconKey,
+        },
       },
       {
         onSuccess: () => {
-          toast.success('Categoria criada com sucesso!');
+          toast.success('Categoria atualizada com sucesso!');
           onOpenChange(false);
         },
         onError: (err) => {
@@ -59,7 +78,7 @@ export function CategoryCreateDialog({
                 response?: { errors?: { message: string }[] };
               }
             ).response?.errors?.[0]?.message ||
-            'Ocorreu um erro ao criar a categoria. Tente novamente.';
+            'Ocorreu um erro ao atualizar a categoria. Tente novamente.';
           toast.error(apiError);
         },
       },
@@ -73,22 +92,22 @@ export function CategoryCreateDialog({
         <Dialog.Popup
           className={cn(
             'fixed left-1/2 top-1/2 w-[calc(100vw-32px)] max-w-md -translate-x-1/2 -translate-y-1/2',
-            'rounded-[12px] border border-gray-200 bg-white p-[25px] text-gray-800 shadow-[0_24px_80px_rgba(17,24,39,0.12)] outline-none',
+            'rounded-[12px] border border-border bg-card p-[25px] text-foreground shadow-[0_24px_80px_rgba(17,24,39,0.12)] outline-none',
           )}
         >
           <div className="flex items-start gap-4">
             <div className="min-w-0 flex-1 space-y-0.5">
-              <Dialog.Title className="text-[16px] font-semibold leading-6 text-gray-800">
-                Nova categoria
+              <Dialog.Title className="text-[16px] font-semibold leading-6 text-foreground">
+                Editar categoria
               </Dialog.Title>
-              <Dialog.Description className="block text-[14px] leading-5 text-gray-600">
-                Organize suas transações com categorias
+              <Dialog.Description className="block text-[14px] leading-5 text-muted-foreground">
+                Atualize as informações da sua categoria
               </Dialog.Description>
             </div>
 
             <Dialog.Close
               aria-label="Fechar"
-              className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 outline-none transition-colors hover:bg-gray-50 hover:text-gray-700 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <X className="size-4" />
             </Dialog.Close>
@@ -97,13 +116,13 @@ export function CategoryCreateDialog({
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label
-                htmlFor="category-title"
+                htmlFor="edit-category-title"
                 className="text-[14px] text-gray-700"
               >
                 Título
               </Label>
               <Input
-                id="category-title"
+                id="edit-category-title"
                 name="title"
                 type="text"
                 placeholder="Ex. Alimentação"
@@ -117,19 +136,19 @@ export function CategoryCreateDialog({
                 disabled={isPending}
                 required
                 minLength={2}
-                className="h-12 border-input px-3.5 text-[16px] shadow-none placeholder:text-gray-400"
+                className="h-12 border-input px-3.5 text-[16px] shadow-none placeholder:text-muted-foreground"
               />
             </div>
 
             <div className="space-y-2">
               <Label
-                htmlFor="category-description"
-                className="text-[14px] text-gray-700"
+                htmlFor="edit-category-description"
+                className="text-[14px] text-foreground"
               >
                 Descrição
               </Label>
               <Input
-                id="category-description"
+                id="edit-category-description"
                 name="description"
                 type="text"
                 placeholder="Descrição da categoria"
@@ -141,13 +160,15 @@ export function CategoryCreateDialog({
                   }));
                 }}
                 disabled={isPending}
-                className="h-12 border-input px-3.5 text-[16px] shadow-none placeholder:text-gray-400"
+                className="h-12 border-input px-3.5 text-[16px] shadow-none placeholder:text-muted-foreground"
               />
-              <p className="text-[12px] leading-4 text-gray-500">Opcional</p>
+              <p className="text-[12px] leading-4 text-muted-foreground">
+                Opcional
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[14px] text-gray-700">Ícone</Label>
+              <Label className="text-[14px] text-foreground">Ícone</Label>
               <div className="flex flex-wrap gap-2">
                 {CATEGORY_ICON_OPTIONS.map((option) => {
                   const Icon = option.icon;
@@ -169,14 +190,16 @@ export function CategoryCreateDialog({
                       className={cn(
                         'flex size-[42px] items-center justify-center rounded-lg border transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
                         isSelected
-                          ? 'border-[#1f6f43] bg-gray-100'
-                          : 'border-gray-200 bg-white hover:bg-gray-50',
+                          ? 'border-primary bg-muted'
+                          : 'border-border bg-card hover:bg-muted',
                       )}
                     >
                       <Icon
                         className={cn(
                           'size-5',
-                          isSelected ? 'text-gray-700' : 'text-gray-500',
+                          isSelected
+                            ? 'text-foreground'
+                            : 'text-muted-foreground',
                         )}
                       />
                     </button>
@@ -186,7 +209,7 @@ export function CategoryCreateDialog({
             </div>
 
             <div className="space-y-2 mb-6">
-              <Label className="text-[14px] text-gray-700">Cor</Label>
+              <Label className="text-[14px] text-foreground">Cor</Label>
               <div className="grid grid-cols-7 gap-2">
                 {CATEGORY_COLOR_OPTIONS.map((option) => {
                   const isSelected = form.color === option.value;
@@ -207,12 +230,12 @@ export function CategoryCreateDialog({
                       className={cn(
                         'flex h-7.5 items-center justify-center rounded-lg border p-1 transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
                         isSelected
-                          ? 'border-[#1f6f43] bg-gray-100'
-                          : 'border-gray-200 bg-white hover:bg-gray-50',
+                          ? 'border-primary bg-muted'
+                          : 'border-border bg-card hover:bg-muted',
                       )}
                     >
                       <span
-                        className="h-5 w-full rounded-[4px]"
+                        className="h-full w-full rounded-[4px]"
                         style={{ backgroundColor: option.color }}
                       />
                     </button>
@@ -224,7 +247,7 @@ export function CategoryCreateDialog({
             <Button
               type="submit"
               disabled={!canSubmit}
-              className="h-12 w-full rounded-lg bg-[#1f6f43] px-4 text-[16px] font-medium text-white shadow-none hover:bg-[#1f6f43]/90"
+              className="h-12 w-full rounded-lg bg-primary px-4 text-[16px] font-medium text-primary-foreground shadow-none hover:bg-primary/90"
             >
               {isPending ? 'Salvando...' : 'Salvar'}
             </Button>

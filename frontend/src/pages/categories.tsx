@@ -2,6 +2,10 @@ import { ArrowUpDown, Plus, SquarePen, Star, Tag, Trash } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { CategoryCreateDialog } from '@/components/category-create-dialog';
+import {
+  CategoryEditDialog,
+  type CategoryToEdit,
+} from '@/components/category-edit-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CategoryColorsMapper, CategoryIconsMapper } from '@/constants';
@@ -44,9 +48,11 @@ function SummaryIcon({
 function ActionButton({
   label,
   children,
+  onClick,
 }: {
   label: string;
   children: ReactNode;
+  onClick?: () => void;
 }) {
   return (
     <Button
@@ -54,6 +60,7 @@ function ActionButton({
       variant="outline"
       size="icon"
       aria-label={label}
+      onClick={onClick}
       className="size-8 rounded-lg border-gray-300 bg-white text-gray-500 shadow-none hover:bg-gray-50 hover:text-gray-700"
     >
       {children}
@@ -128,9 +135,10 @@ function SummarySection({ categories }: SummarySectionProps) {
 
 interface CategoriesListProps {
   categories: FetchCategoriesForDashboardQuery['categories'];
+  onEditCategory: (category: CategoryToEdit) => void;
 }
 
-function CategoriesList({ categories }: CategoriesListProps) {
+function CategoriesList({ categories, onEditCategory }: CategoriesListProps) {
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {categories.map((category) => {
@@ -159,7 +167,10 @@ function CategoriesList({ categories }: CategoriesListProps) {
                 <ActionButton label={`Excluir categoria ${category.title}`}>
                   <Trash className="size-4 text-destructive" />
                 </ActionButton>
-                <ActionButton label={`Editar categoria ${category.title}`}>
+                <ActionButton
+                  label={`Editar categoria ${category.title}`}
+                  onClick={() => onEditCategory(category)}
+                >
                   <SquarePen className="size-4 text-gray-700" />
                 </ActionButton>
               </div>
@@ -193,8 +204,18 @@ function CategoriesList({ categories }: CategoriesListProps) {
 
 export default function CategoriesPage() {
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<CategoryToEdit | null>(
+    null,
+  );
+
   const { data: categoriesData, isLoading: categoriesLoading } =
     useFetchCategoriesForDashboardQuery();
+
+  const handleEditCategory = (category: CategoryToEdit) => {
+    setCategoryToEdit(category);
+    setIsEditCategoryOpen(true);
+  };
 
   return (
     <main className="min-h-screen bg-gray-100 text-gray-800">
@@ -224,6 +245,12 @@ export default function CategoriesPage() {
           onOpenChange={setIsCreateCategoryOpen}
         />
 
+        <CategoryEditDialog
+          open={isEditCategoryOpen}
+          onOpenChange={setIsEditCategoryOpen}
+          category={categoryToEdit}
+        />
+
         {categoriesLoading || !categoriesData?.categories ? (
           <p>Carregando...</p>
         ) : (
@@ -233,7 +260,10 @@ export default function CategoriesPage() {
         {categoriesLoading || !categoriesData?.categories ? (
           <p>Carregando...</p>
         ) : (
-          <CategoriesList categories={categoriesData.categories} />
+          <CategoriesList
+            categories={categoriesData.categories}
+            onEditCategory={handleEditCategory}
+          />
         )}
       </div>
     </main>
