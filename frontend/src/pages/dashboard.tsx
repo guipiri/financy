@@ -1,8 +1,8 @@
 import {
   ArrowDownCircle,
-  ArrowRight,
   ArrowUpCircle,
   ChevronRight,
+  CircleArrowRight,
   Plus,
   Wallet,
 } from 'lucide-react';
@@ -10,8 +10,9 @@ import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CategoryColorsMapper, CategoryIconsMapper } from '@/constants';
+import { useFetchCategoriesForDashboardQuery } from '@/hooks/api/useCategories';
 import { useFetchTransactionsQuery } from '@/hooks/api/useTransactions';
-import { cn } from '@/lib/utils';
+import { cn, formatCentsToBRL } from '@/lib/utils';
 import type { CategoryIcons, CategoryTones } from '@/types/category';
 
 type SummaryCard = {
@@ -19,13 +20,6 @@ type SummaryCard = {
   value: string;
   icon: typeof Wallet;
   iconClassName: string;
-};
-
-type Category = {
-  label: string;
-  items: string;
-  amount: string;
-  tone: 'blue' | 'green' | 'purple' | 'orange' | 'pink' | 'yellow';
 };
 
 const summaryCards: SummaryCard[] = [
@@ -46,34 +40,6 @@ const summaryCards: SummaryCard[] = [
     value: 'R$ 2.180,45',
     icon: ArrowDownCircle,
     iconClassName: 'text-red-base',
-  },
-];
-
-const categories: Category[] = [
-  {
-    label: 'Alimentação',
-    items: '12 itens',
-    amount: 'R$ 542,30',
-    tone: 'blue',
-  },
-  {
-    label: 'Transporte',
-    items: '8 itens',
-    amount: 'R$ 385,50',
-    tone: 'purple',
-  },
-  { label: 'Mercado', items: '3 itens', amount: 'R$ 298,75', tone: 'orange' },
-  {
-    label: 'Entretenimento',
-    items: '2 itens',
-    amount: 'R$ 186,20',
-    tone: 'pink',
-  },
-  {
-    label: 'Utilidades',
-    items: '7 itens',
-    amount: 'R$ 245,80',
-    tone: 'yellow',
   },
 ];
 
@@ -105,6 +71,9 @@ function SummaryIcon({
 function Dashboard() {
   const { data: transactions, isLoading: transactionsIsLoading } =
     useFetchTransactionsQuery();
+
+  const { data: categories, isLoading: categoriesIsLoading } =
+    useFetchCategoriesForDashboardQuery();
 
   return (
     <main className="min-h-screen bg-gray-100 text-foreground">
@@ -203,17 +172,14 @@ function Dashboard() {
 
                     <div className="flex w-[160px] items-center justify-end gap-2 px-4">
                       <p className="text-sm font-semibold whitespace-nowrap text-gray-800">
-                        {transaction.amountInCents.toLocaleString('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        })}
+                        {formatCentsToBRL(transaction.amountInCents)}
                       </p>
-                      <ArrowRight
+                      <CircleArrowRight
                         className={cn(
                           'size-4 shrink-0',
                           transaction.type === 'INCOME'
-                            ? '-rotate-45 text-green-dark'
-                            : 'rotate-45 text-red-base',
+                            ? '-rotate-90 text-green-dark'
+                            : 'rotate-90 text-red-base',
                         )}
                       />
                     </div>
@@ -251,17 +217,24 @@ function Dashboard() {
           </div>
 
           <div className="space-y-5 px-6 py-6">
-            {categories.map((category) => (
-              <div key={category.label} className="flex items-center gap-1">
-                <CategoryPill tone={category.tone} label={category.label} />
-                <p className="min-w-0 flex-1 text-right text-sm text-gray-600">
-                  {category.items}
-                </p>
-                <p className="w-[88px] text-right text-sm font-semibold text-gray-800">
-                  {category.amount}
-                </p>
-              </div>
-            ))}
+            {categoriesIsLoading ? (
+              <p>Carregando...</p>
+            ) : (
+              categories.categories.map((category) => (
+                <div key={category.id} className="flex items-center gap-1">
+                  <CategoryPill
+                    tone={category.color as CategoryTones}
+                    label={category.title}
+                  />
+                  <p className="min-w-0 flex-1 text-right text-sm text-gray-600">
+                    {category.items.qty}
+                  </p>
+                  <p className="w-[88px] text-right text-sm font-semibold text-gray-800">
+                    {formatCentsToBRL(category.items.amountIncents)}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </Card>
       </div>
