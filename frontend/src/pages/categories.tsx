@@ -1,0 +1,246 @@
+import { ArrowUpDown, Plus, SquarePen, Star, Tag, Trash2 } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { CategoryColorsMapper, CategoryIconsMapper } from '@/constants';
+import type { FetchCategoriesForDashboardQuery } from '@/graphql/generated/graphql';
+import { useFetchCategoriesForDashboardQuery } from '@/hooks/api/useCategories';
+import { cn } from '@/lib/utils';
+import type { CategoryIcons, CategoryTones } from '@/types/category';
+
+type SummaryCard = {
+  title: string;
+  value: string;
+  icon: typeof Tag;
+  iconClassName: string;
+};
+
+function getToneClasses(tone: CategoryTones) {
+  const [bgClass, textClass] = CategoryColorsMapper[tone].light.split(' ');
+
+  return {
+    bgClass,
+    textClass,
+  };
+}
+
+function formatItemsLabel(quantity: number) {
+  return quantity === 1 ? '1 item' : `${quantity} itens`;
+}
+
+function SummaryIcon({
+  icon: Icon,
+  className,
+}: {
+  icon: SummaryCard['icon'];
+  className: string;
+}) {
+  return <Icon className={cn('size-5 shrink-0', className)} />;
+}
+
+function CategoryPill({ tone, label }: { tone: CategoryTones; label: string }) {
+  const { bgClass, textClass } = getToneClasses(tone);
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full px-3 py-1 text-sm font-medium',
+        bgClass,
+        textClass,
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
+function ActionButton({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      aria-label={label}
+      className="size-8 rounded-lg border-gray-300 bg-white text-gray-500 shadow-none hover:bg-gray-50 hover:text-gray-700"
+    >
+      {children}
+    </Button>
+  );
+}
+
+function SummarySection({
+  categoriesData,
+  categoriesIsLoading,
+}: {
+  categoriesData: NoInfer<FetchCategoriesForDashboardQuery>;
+  categoriesIsLoading: boolean;
+}) {
+  const categories = categoriesData?.categories ?? [];
+
+  const totalCategories = categories.length;
+  const totalTransactions = categories.reduce(
+    (acc, category) => acc + (category.items?.qty ?? 0),
+    0,
+  );
+  const mostUsedCategory = [...categories].sort(
+    (a, b) => (b.items?.qty ?? 0) - (a.items?.qty ?? 0),
+  )[0];
+
+  const summaryCards: SummaryCard[] = [
+    {
+      title: 'Total de categorias',
+      value: totalCategories.toString(),
+      icon: Tag,
+      iconClassName: 'text-gray-700',
+    },
+    {
+      title: 'Total de transações',
+      value: totalTransactions.toString(),
+      icon: ArrowUpDown,
+      iconClassName: 'text-purple-base',
+    },
+    {
+      title: 'Categoria mais utilizada',
+      value: mostUsedCategory?.title || 'Nenhuma',
+      icon:
+        CategoryIconsMapper[mostUsedCategory?.iconKey as CategoryIcons] || Star,
+      iconClassName: 'text-blue-base',
+    },
+  ];
+  return (
+    <section className="md:grid gap-6 md:grid-cols-3 flex flex-col">
+      {summaryCards.map((card) => (
+        <Card key={card.title} className="shadow-xs p-4 sm:p-5 lg:p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg text-gray-700">
+              <SummaryIcon
+                icon={card.icon}
+                className={cn(card.iconClassName, 'size-6 lg:size-8')}
+              />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p
+                className="sm:text-xl lg:text-[28px] text-lg font-bold leading-8 text-gray-800 truncate"
+                title={card.value}
+              >
+                {card.value}
+              </p>
+              <p className="mt-2 text-[12px] uppercase tracking-[0.05em] text-gray-500">
+                {card.title}
+              </p>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </section>
+  );
+}
+
+export default function CategoriesPage() {
+  const { data: categoriesData, isLoading: categoriesLoading } =
+    useFetchCategoriesForDashboardQuery();
+
+  return (
+    <main className="min-h-screen bg-gray-100 text-gray-800">
+      <div className="mx-auto flex w-full max-w-9xl flex-col gap-8 px-4 py-10 sm:px-8 md:px-10 lg:px-12">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-[24px] font-bold leading-8 tracking-tight text-gray-800">
+              Categorias
+            </h1>
+            <p className="text-[16px] leading-6 text-gray-600">
+              Organize suas transações por categorias
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            className="h-9 gap-2 my-auto rounded-lg bg-[#1f6f43] px-3 text-sm font-medium text-white shadow-none hover:bg-[#1f6f43]/90"
+          >
+            <Plus className="size-4" />
+            Nova categoria
+          </Button>
+        </header>
+
+        <SummarySection
+          categoriesData={categoriesData}
+          categoriesIsLoading={categoriesLoading}
+        />
+
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {categoriesLoading ? (
+            <p className="col-span-full text-center text-gray-500">
+              Carregando categorias...
+            </p>
+          ) : (
+            categoriesData.categories.map((category) => {
+              const iconKey =
+                (category.iconKey as CategoryIcons) || 'briefcase-business';
+              const CategoryIcon =
+                CategoryIconsMapper[iconKey] ||
+                CategoryIconsMapper['briefcase-business'];
+              const { bgClass, textClass } = getToneClasses(
+                category.color as CategoryTones,
+              );
+
+              return (
+                <Card key={category.id} className="gap-5 p-[25px] shadow-xs">
+                  <div className="flex items-start justify-between gap-4">
+                    <div
+                      className={cn(
+                        'flex size-10 shrink-0 items-center justify-center rounded-lg',
+                        bgClass,
+                      )}
+                    >
+                      <CategoryIcon className={cn('size-4', textClass)} />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <ActionButton
+                        label={`Excluir categoria ${category.title}`}
+                      >
+                        <Trash2 className="size-4" />
+                      </ActionButton>
+                      <ActionButton
+                        label={`Editar categoria ${category.title}`}
+                      >
+                        <SquarePen className="size-4" />
+                      </ActionButton>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h2 className="text-[16px] font-semibold leading-6 text-gray-800">
+                      {category.title}
+                    </h2>
+                    <p className="min-h-10 text-[14px] leading-5 text-gray-600">
+                      {category.description}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <CategoryPill
+                      tone={category.color as CategoryTones}
+                      label={category.title}
+                    />
+
+                    <p className="whitespace-nowrap text-[14px] leading-5 text-gray-600">
+                      {formatItemsLabel(category.items?.qty ?? 0)}
+                    </p>
+                  </div>
+                </Card>
+              );
+            })
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}

@@ -5,6 +5,7 @@ export const FETCH_CATEGORIES_FOR_DASHBOARD_QUERY = gql(`
     categories {
       id
       title
+      description
       color
       iconKey
       items {

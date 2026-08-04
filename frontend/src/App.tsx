@@ -3,6 +3,7 @@ import { useAuth } from './contexts/AuthContext';
 import Dashboard from './pages/dashboard';
 import Signin from './pages/signin';
 import Signup from './pages/signup';
+import CategoriesPage from './pages/categories';
 
 export const routes = {
   signin: {
@@ -23,6 +24,12 @@ export const routes = {
     path: '/',
     component: Dashboard,
   },
+  transactions: {
+    isPrivate: true,
+    name: 'Categorias',
+    path: '/categorias',
+    component: CategoriesPage,
+  }
 };
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
