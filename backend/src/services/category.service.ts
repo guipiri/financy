@@ -9,9 +9,23 @@ import type { Category } from '../models/category.model';
 @Service()
 export class CategoryService {
   async getCategories(userId: string): Promise<Category[]> {
-    return prisma.transactionCategory.findMany({
+    const transactions = await prisma.transactionCategory.findMany({
       where: { userId },
+      include: { transactions: { select: { amountInCents: true } } },
       orderBy: { createdAt: 'desc' },
+    });
+
+    return transactions.map((t) => {
+      return {
+        ...t,
+        items: {
+          qty: t.transactions.length,
+          amountIncents: t.transactions.reduce(
+            (acc, t) => acc + t.amountInCents,
+            0,
+          ),
+        },
+      };
     });
   }
 

@@ -103,17 +103,8 @@ function SummaryIcon({
 }
 
 function Dashboard() {
-  const { data: transactions, isLoading } = useFetchTransactionsQuery();
-
-  if (isLoading || !transactions) {
-    return (
-      <main className="min-h-screen bg-gray-100 text-foreground">
-        <div className="mx-auto flex flex-col md:grid md:grid-cols-3 md:grid-rows-[auto_1fr] w-full max-w-7xl gap-6 p-4 lg:p-12">
-          <p>Carregando...</p>
-        </div>
-      </main>
-    );
-  }
+  const { data: transactions, isLoading: transactionsIsLoading } =
+    useFetchTransactionsQuery();
 
   return (
     <main className="min-h-screen bg-gray-100 text-foreground">
@@ -153,78 +144,83 @@ function Dashboard() {
           </div>
 
           <div className="divide-y divide-border">
-            {transactions.transactions?.map((transaction) => {
-              const CatIcon =
-                CategoryIconsMapper[
-                  (transaction.category?.iconKey as CategoryIcons) ||
-                    'briefcase-business'
-                ];
-              const date = new Date(transaction.date as string);
+            {transactionsIsLoading ? (
+              <p className="text-center p-4">Carregando...</p>
+            ) : (
+              transactions?.transactions.map((transaction) => {
+                const CatIcon =
+                  CategoryIconsMapper[
+                    (transaction.category?.iconKey as CategoryIcons) ||
+                      'briefcase-business'
+                  ];
+                const date = new Date(transaction.date as string);
 
-              return (
-                <div
-                  key={`${transaction.description}-${transaction.date}`}
-                  className="flex min-h-20 items-center px-6 py-4"
-                >
-                  <div className="flex flex-1 items-center gap-4 pr-4">
-                    <div
-                      className={cn(
-                        'flex size-10 shrink-0 items-center justify-center rounded-lg',
-                        CategoryColorsMapper[
-                          (transaction.category?.color as CategoryTones) ||
-                            'blue'
-                        ].light,
-                      )}
-                    >
-                      <CatIcon
+                return (
+                  <div
+                    key={`${transaction.description}-${transaction.date}`}
+                    className="flex min-h-20 items-center px-6 py-4"
+                  >
+                    <div className="flex flex-1 items-center gap-4 pr-4">
+                      <div
                         className={cn(
-                          'size-4',
+                          'flex size-10 shrink-0 items-center justify-center rounded-lg',
                           CategoryColorsMapper[
                             (transaction.category?.color as CategoryTones) ||
                               'blue'
                           ].light,
                         )}
+                      >
+                        <CatIcon
+                          className={cn(
+                            'size-4',
+                            CategoryColorsMapper[
+                              (transaction.category?.color as CategoryTones) ||
+                                'blue'
+                            ].light,
+                          )}
+                        />
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-base font-medium leading-6 text-gray-800">
+                          {transaction.description}
+                        </p>
+                        <p className="text-sm leading-5 text-gray-600">
+                          {date.toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex w-[160px] justify-center px-4">
+                      <CategoryPill
+                        tone={
+                          (transaction.category?.color as CategoryTones) ||
+                          'blue'
+                        }
+                        label={transaction.category?.title || 'Sem categoria'}
                       />
                     </div>
 
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-medium leading-6 text-gray-800">
-                        {transaction.description}
+                    <div className="flex w-[160px] items-center justify-end gap-2 px-4">
+                      <p className="text-sm font-semibold whitespace-nowrap text-gray-800">
+                        {transaction.amountInCents.toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        })}
                       </p>
-                      <p className="text-sm leading-5 text-gray-600">
-                        {date.toLocaleDateString()}
-                      </p>
+                      <ArrowRight
+                        className={cn(
+                          'size-4 shrink-0',
+                          transaction.type === 'INCOME'
+                            ? '-rotate-45 text-green-dark'
+                            : 'rotate-45 text-red-base',
+                        )}
+                      />
                     </div>
                   </div>
-
-                  <div className="flex w-[160px] justify-center px-4">
-                    <CategoryPill
-                      tone={
-                        (transaction.category?.color as CategoryTones) || 'blue'
-                      }
-                      label={transaction.category?.title || 'Sem categoria'}
-                    />
-                  </div>
-
-                  <div className="flex w-[160px] items-center justify-end gap-2 px-4">
-                    <p className="text-sm font-semibold whitespace-nowrap text-gray-800">
-                      {transaction.amountInCents.toLocaleString('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      })}
-                    </p>
-                    <ArrowRight
-                      className={cn(
-                        'size-4 shrink-0',
-                        transaction.type === 'INCOME'
-                          ? '-rotate-45 text-green-dark'
-                          : 'rotate-45 text-red-base',
-                      )}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           <div className="border-t border-border px-6 py-5">
