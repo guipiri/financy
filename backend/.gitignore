@@ -3,3 +3,5 @@
 /prisma/generated
 
 dev.db
+
+/dist

@@ -1,5 +1,7 @@
 import { ArrowUpDown, Plus, SquarePen, Star, Tag, Trash } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
+import { CategoryCreateDialog } from '@/components/category-create-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CategoryColorsMapper, CategoryIconsMapper } from '@/constants';
@@ -190,6 +192,7 @@ function CategoriesList({ categories }: CategoriesListProps) {
 }
 
 export default function CategoriesPage() {
+  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const { data: categoriesData, isLoading: categoriesLoading } =
     useFetchCategoriesForDashboardQuery();
 
@@ -208,12 +211,18 @@ export default function CategoriesPage() {
 
           <Button
             type="button"
+            onClick={() => setIsCreateCategoryOpen(true)}
             className="h-9 gap-2 my-auto rounded-lg bg-[#1f6f43] px-3 text-sm font-medium text-white shadow-none hover:bg-[#1f6f43]/90"
           >
             <Plus className="size-4" />
             Nova categoria
           </Button>
         </header>
+
+        <CategoryCreateDialog
+          open={isCreateCategoryOpen}
+          onOpenChange={setIsCreateCategoryOpen}
+        />
 
         {categoriesLoading || !categoriesData?.categories ? (
           <p>Carregando...</p>

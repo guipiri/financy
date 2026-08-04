@@ -80,6 +80,7 @@ function Dashboard() {
 
   const { data: categories, isLoading: categoriesIsLoading } =
     useFetchCategoriesForDashboardQuery();
+  const categoryItems = categories?.categories ?? [];
 
   return (
     <main className="min-h-screen bg-gray-100 text-foreground">
@@ -226,17 +227,17 @@ function Dashboard() {
             {categoriesIsLoading ? (
               <p>Carregando...</p>
             ) : (
-              categories.categories.map((category) => (
+              categoryItems.map((category) => (
                 <div key={category.id} className="flex items-center gap-1">
                   <CategoryPill
                     tone={category.color as CategoryTones}
                     label={category.title}
                   />
                   <p className="min-w-0 flex-1 text-right text-sm text-gray-600">
-                    {category.items.qty}
+                    {category.items?.qty ?? 0}
                   </p>
                   <p className="w-[88px] text-right text-sm font-semibold text-gray-800">
-                    {formatCentsToBRL(category.items.amountIncents)}
+                    {formatCentsToBRL(category.items?.amountIncents ?? 0)}
                   </p>
                 </div>
               ))

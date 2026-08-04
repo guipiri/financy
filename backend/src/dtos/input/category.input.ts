@@ -11,7 +11,6 @@ export class CreateCategoryInput {
 
   @Field(() => String)
   @IsString()
-  @IsNotEmpty({ message: 'A descrição é obrigatória' })
   description!: string;
 
   @Field(() => String)
