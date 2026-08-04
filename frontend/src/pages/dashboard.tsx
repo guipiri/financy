@@ -43,13 +43,19 @@ const summaryCards: SummaryCard[] = [
   },
 ];
 
-function CategoryPill({ tone, label }: { tone: CategoryTones; label: string }) {
+export function CategoryPill({
+  tone,
+  label,
+}: {
+  tone: CategoryTones;
+  label: string;
+}) {
   const { resolvedTheme } = useTheme();
   const theme = resolvedTheme === 'dark' ? 'dark' : 'light';
   return (
     <p
       className={cn(
-        'items-center rounded-full px-3 py-1 text-sm font-medium truncate max-w-[100px] shrink-0 text-center',
+        'items-center rounded-full px-3 py-1 text-sm font-medium text-center truncate',
         CategoryColorsMapper[tone][theme],
       )}
     >

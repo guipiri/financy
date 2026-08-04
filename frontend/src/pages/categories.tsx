@@ -1,4 +1,4 @@
-import { ArrowUpDown, Plus, SquarePen, Star, Tag, Trash2 } from 'lucide-react';
+import { ArrowUpDown, Plus, SquarePen, Star, Tag, Trash } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import type { FetchCategoriesForDashboardQuery } from '@/graphql/generated/graph
 import { useFetchCategoriesForDashboardQuery } from '@/hooks/api/useCategories';
 import { cn } from '@/lib/utils';
 import type { CategoryIcons, CategoryTones } from '@/types/category';
+import { CategoryPill } from './dashboard';
 
 type SummaryCard = {
   title: string;
@@ -38,22 +39,6 @@ function SummaryIcon({
   return <Icon className={cn('size-5 shrink-0', className)} />;
 }
 
-function CategoryPill({ tone, label }: { tone: CategoryTones; label: string }) {
-  const { bgClass, textClass } = getToneClasses(tone);
-
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full px-3 py-1 text-sm font-medium',
-        bgClass,
-        textClass,
-      )}
-    >
-      {label}
-    </span>
-  );
-}
-
 function ActionButton({
   label,
   children,
@@ -74,15 +59,11 @@ function ActionButton({
   );
 }
 
-function SummarySection({
-  categoriesData,
-  categoriesIsLoading,
-}: {
-  categoriesData: NoInfer<FetchCategoriesForDashboardQuery>;
-  categoriesIsLoading: boolean;
-}) {
-  const categories = categoriesData?.categories ?? [];
+interface SummarySectionProps {
+  categories: FetchCategoriesForDashboardQuery['categories'];
+}
 
+function SummarySection({ categories }: SummarySectionProps) {
   const totalCategories = categories.length;
   const totalTransactions = categories.reduce(
     (acc, category) => acc + (category.items?.qty ?? 0),
@@ -143,13 +124,78 @@ function SummarySection({
   );
 }
 
+interface CategoriesListProps {
+  categories: FetchCategoriesForDashboardQuery['categories'];
+}
+
+function CategoriesList({ categories }: CategoriesListProps) {
+  return (
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {categories.map((category) => {
+        const iconKey =
+          (category.iconKey as CategoryIcons) || 'briefcase-business';
+        const CategoryIcon =
+          CategoryIconsMapper[iconKey] ||
+          CategoryIconsMapper['briefcase-business'];
+        const { bgClass, textClass } = getToneClasses(
+          category.color as CategoryTones,
+        );
+
+        return (
+          <Card key={category.id} className="gap-5 p-[25px] sm:p-6 shadow-xs">
+            <div className="flex items-start justify-between gap-4">
+              <div
+                className={cn(
+                  'flex size-10 shrink-0 items-center justify-center rounded-lg',
+                  bgClass,
+                )}
+              >
+                <CategoryIcon className={cn('size-4', textClass)} />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <ActionButton label={`Excluir categoria ${category.title}`}>
+                  <Trash className="size-4 text-destructive" />
+                </ActionButton>
+                <ActionButton label={`Editar categoria ${category.title}`}>
+                  <SquarePen className="size-4 text-gray-700" />
+                </ActionButton>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <h2 className="text-[16px] font-semibold leading-6 text-gray-800">
+                {category.title}
+              </h2>
+              <p className="min-h-10 text-[14px] leading-5 text-gray-600">
+                {category.description}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <CategoryPill
+                tone={category.color as CategoryTones}
+                label={category.title}
+              />
+
+              <p className="whitespace-nowrap text-[14px] leading-5 text-gray-600">
+                {formatItemsLabel(category.items?.qty ?? 0)}
+              </p>
+            </div>
+          </Card>
+        );
+      })}
+    </section>
+  );
+}
+
 export default function CategoriesPage() {
   const { data: categoriesData, isLoading: categoriesLoading } =
     useFetchCategoriesForDashboardQuery();
 
   return (
     <main className="min-h-screen bg-gray-100 text-gray-800">
-      <div className="mx-auto flex w-full max-w-9xl flex-col gap-8 px-4 py-10 sm:px-8 md:px-10 lg:px-12">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-8 md:px-10 lg:px-12">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <h1 className="text-[24px] font-bold leading-8 tracking-tight text-gray-800">
@@ -169,77 +215,17 @@ export default function CategoriesPage() {
           </Button>
         </header>
 
-        <SummarySection
-          categoriesData={categoriesData}
-          categoriesIsLoading={categoriesLoading}
-        />
+        {categoriesLoading || !categoriesData?.categories ? (
+          <p>Carregando...</p>
+        ) : (
+          <SummarySection categories={categoriesData.categories} />
+        )}
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {categoriesLoading ? (
-            <p className="col-span-full text-center text-gray-500">
-              Carregando categorias...
-            </p>
-          ) : (
-            categoriesData.categories.map((category) => {
-              const iconKey =
-                (category.iconKey as CategoryIcons) || 'briefcase-business';
-              const CategoryIcon =
-                CategoryIconsMapper[iconKey] ||
-                CategoryIconsMapper['briefcase-business'];
-              const { bgClass, textClass } = getToneClasses(
-                category.color as CategoryTones,
-              );
-
-              return (
-                <Card key={category.id} className="gap-5 p-[25px] shadow-xs">
-                  <div className="flex items-start justify-between gap-4">
-                    <div
-                      className={cn(
-                        'flex size-10 shrink-0 items-center justify-center rounded-lg',
-                        bgClass,
-                      )}
-                    >
-                      <CategoryIcon className={cn('size-4', textClass)} />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <ActionButton
-                        label={`Excluir categoria ${category.title}`}
-                      >
-                        <Trash2 className="size-4" />
-                      </ActionButton>
-                      <ActionButton
-                        label={`Editar categoria ${category.title}`}
-                      >
-                        <SquarePen className="size-4" />
-                      </ActionButton>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <h2 className="text-[16px] font-semibold leading-6 text-gray-800">
-                      {category.title}
-                    </h2>
-                    <p className="min-h-10 text-[14px] leading-5 text-gray-600">
-                      {category.description}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-4">
-                    <CategoryPill
-                      tone={category.color as CategoryTones}
-                      label={category.title}
-                    />
-
-                    <p className="whitespace-nowrap text-[14px] leading-5 text-gray-600">
-                      {formatItemsLabel(category.items?.qty ?? 0)}
-                    </p>
-                  </div>
-                </Card>
-              );
-            })
-          )}
-        </section>
+        {categoriesLoading || !categoriesData?.categories ? (
+          <p>Carregando...</p>
+        ) : (
+          <CategoriesList categories={categoriesData.categories} />
+        )}
       </div>
     </main>
   );
