@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { useAuth } from './contexts/AuthContext';
+import Dashboard from './pages/dashboard';
 import Signin from './pages/signin';
 import Signup from './pages/signup';
 
@@ -20,7 +21,7 @@ export const routes = {
     isPrivate: true,
     name: 'Dashboard',
     path: '/',
-    component: () => <div>Dashboard</div>,
+    component: Dashboard,
   },
 };
 
