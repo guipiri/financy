@@ -55,6 +55,7 @@ type Query {
   categories: [Category!]!
   category(id: String!): Category!
   fetchAll: [User!]!
+  me: User!
   transaction(id: String!): Transaction!
   transactions: [Transaction!]!
   transactionsPage(filters: TransactionFiltersInput): TransactionsOutput!

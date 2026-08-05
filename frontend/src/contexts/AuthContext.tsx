@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import { graphqlClient } from '@/graphql/client';
+import { ME_QUERY } from '@/graphql/documents/user';
 
 export interface User {
   id: string;
@@ -56,25 +57,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('accessToken');
+    let isMounted = true;
 
-    if (storedUser && storedToken) {
-      try {
-        login(
-          JSON.parse(storedUser),
-          storedToken,
-          localStorage.getItem('refreshToken'),
-        );
-      } catch (error) {
-        console.error('Erro ao ler usuário do localStorage:', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+    async function validateToken() {
+      const storedToken = localStorage.getItem('accessToken');
+
+      if (storedToken) {
+        try {
+          graphqlClient.setHeader('Authorization', `Bearer ${storedToken}`);
+          const data = await graphqlClient.request(ME_QUERY);
+
+          if (isMounted && data?.me) {
+            setUser(data.me);
+            localStorage.setItem('user', JSON.stringify(data.me));
+          } else if (isMounted) {
+            logout();
+          }
+        } catch (error) {
+          console.error('Falha na validação do token no backend:', error);
+          if (isMounted) {
+            logout();
+          }
+        }
+      } else {
+        if (isMounted) {
+          logout();
+        }
+      }
+
+      if (isMounted) {
+        setLoading(false);
       }
     }
-    setLoading(false);
-  }, [login]);
+
+    validateToken();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [logout]);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+
+    window.addEventListener('unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('unauthorized', handleUnauthorized);
+    };
+  }, [logout]);
 
   const value = {
     user,

@@ -11,4 +11,17 @@ export const graphqlClient = new GraphQLClient(API_URL, {
     }
     return headers;
   },
+  responseMiddleware: (response) => {
+    if (response instanceof Error) {
+      const message = response.message?.toLowerCase() || '';
+      if (
+        message.includes('não autenticado') ||
+        message.includes('unauthorized') ||
+        message.includes('jwt expired') ||
+        message.includes('access denied')
+      ) {
+        window.dispatchEvent(new Event('unauthorized'));
+      }
+    }
+  },
 });
