@@ -1,8 +1,13 @@
-import { Dialog } from '@base-ui/react/dialog';
-import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CATEGORY_COLOR_OPTIONS, CATEGORY_ICON_OPTIONS } from '@/constants';
@@ -86,174 +91,143 @@ export function CategoryEditDialog({
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 bg-gray-900/20 backdrop-blur-[1px]" />
-        <Dialog.Popup
-          className={cn(
-            'fixed left-1/2 top-1/2 w-[calc(100vw-32px)] max-w-md -translate-x-1/2 -translate-y-1/2',
-            'rounded-[12px] border border-border bg-card p-[25px] text-foreground shadow-[0_24px_80px_rgba(17,24,39,0.12)] outline-none',
-          )}
-        >
-          <div className="flex items-start gap-4">
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <Dialog.Title className="text-[16px] font-semibold leading-6 text-foreground">
-                Editar categoria
-              </Dialog.Title>
-              <Dialog.Description className="block text-[14px] leading-5 text-muted-foreground">
-                Atualize as informações da sua categoria
-              </Dialog.Description>
-            </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar categoria</DialogTitle>
+          <DialogDescription>
+            Atualize as informações da sua categoria
+          </DialogDescription>
+        </DialogHeader>
 
-            <Dialog.Close
-              aria-label="Fechar"
-              className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              <X className="size-4" />
-            </Dialog.Close>
+        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+          <div className="space-y-2">
+            <Label htmlFor="edit-category-title">Título</Label>
+            <Input
+              id="edit-category-title"
+              name="title"
+              type="text"
+              placeholder="Ex. Alimentação"
+              value={form.title}
+              onChange={(event) => {
+                setForm((current) => ({
+                  ...current,
+                  title: event.target.value,
+                }));
+              }}
+              disabled={isPending}
+              required
+              minLength={2}
+              className="h-12 text-base"
+            />
           </div>
 
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <Label
-                htmlFor="edit-category-title"
-                className="text-[14px] text-gray-700"
-              >
-                Título
-              </Label>
-              <Input
-                id="edit-category-title"
-                name="title"
-                type="text"
-                placeholder="Ex. Alimentação"
-                value={form.title}
-                onChange={(event) => {
-                  setForm((current) => ({
-                    ...current,
-                    title: event.target.value,
-                  }));
-                }}
-                disabled={isPending}
-                required
-                minLength={2}
-                className="h-12 border-input px-3.5 text-[16px] shadow-none placeholder:text-muted-foreground"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-category-description">Descrição</Label>
+            <Input
+              id="edit-category-description"
+              name="description"
+              type="text"
+              placeholder="Descrição da categoria"
+              value={form.description}
+              onChange={(event) => {
+                setForm((current) => ({
+                  ...current,
+                  description: event.target.value,
+                }));
+              }}
+              disabled={isPending}
+              className="h-12 text-base"
+            />
+            <p className="text-xs text-muted-foreground">Opcional</p>
+          </div>
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="edit-category-description"
-                className="text-[14px] text-foreground"
-              >
-                Descrição
-              </Label>
-              <Input
-                id="edit-category-description"
-                name="description"
-                type="text"
-                placeholder="Descrição da categoria"
-                value={form.description}
-                onChange={(event) => {
-                  setForm((current) => ({
-                    ...current,
-                    description: event.target.value,
-                  }));
-                }}
-                disabled={isPending}
-                className="h-12 border-input px-3.5 text-[16px] shadow-none placeholder:text-muted-foreground"
-              />
-              <p className="text-[12px] leading-4 text-muted-foreground">
-                Opcional
-              </p>
-            </div>
+          <div className="space-y-2">
+            <Label>Ícone</Label>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORY_ICON_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                const isSelected = form.iconKey === option.value;
 
-            <div className="space-y-2">
-              <Label className="text-[14px] text-foreground">Ícone</Label>
-              <div className="flex flex-wrap gap-2">
-                {CATEGORY_ICON_OPTIONS.map((option) => {
-                  const Icon = option.icon;
-                  const isSelected = form.iconKey === option.value;
-
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      aria-label={option.label}
-                      aria-pressed={isSelected}
-                      onClick={() => {
-                        setForm((current) => ({
-                          ...current,
-                          iconKey: option.value,
-                        }));
-                      }}
-                      disabled={isPending}
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-label={option.label}
+                    aria-pressed={isSelected}
+                    onClick={() => {
+                      setForm((current) => ({
+                        ...current,
+                        iconKey: option.value,
+                      }));
+                    }}
+                    disabled={isPending}
+                    className={cn(
+                      'flex size-[42px] items-center justify-center rounded-lg border transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+                      isSelected
+                        ? 'border-primary bg-muted'
+                        : 'border-border bg-card hover:bg-muted',
+                    )}
+                  >
+                    <Icon
                       className={cn(
-                        'flex size-[42px] items-center justify-center rounded-lg border transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+                        'size-5',
                         isSelected
-                          ? 'border-primary bg-muted'
-                          : 'border-border bg-card hover:bg-muted',
+                          ? 'text-foreground'
+                          : 'text-muted-foreground',
                       )}
-                    >
-                      <Icon
-                        className={cn(
-                          'size-5',
-                          isSelected
-                            ? 'text-foreground'
-                            : 'text-muted-foreground',
-                        )}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
+                    />
+                  </button>
+                );
+              })}
             </div>
+          </div>
 
-            <div className="space-y-2 mb-6">
-              <Label className="text-[14px] text-foreground">Cor</Label>
-              <div className="grid grid-cols-7 gap-2">
-                {CATEGORY_COLOR_OPTIONS.map((option) => {
-                  const isSelected = form.color === option.value;
+          <div className="space-y-2 mb-6">
+            <Label>Cor</Label>
+            <div className="grid grid-cols-7 gap-2">
+              {CATEGORY_COLOR_OPTIONS.map((option) => {
+                const isSelected = form.color === option.value;
 
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      aria-label={option.label}
-                      aria-pressed={isSelected}
-                      onClick={() => {
-                        setForm((current) => ({
-                          ...current,
-                          color: option.value,
-                        }));
-                      }}
-                      disabled={isPending}
-                      className={cn(
-                        'flex h-7.5 items-center justify-center rounded-lg border p-1 transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
-                        isSelected
-                          ? 'border-primary bg-muted'
-                          : 'border-border bg-card hover:bg-muted',
-                      )}
-                    >
-                      <span
-                        className="h-full w-full rounded-[4px]"
-                        style={{ backgroundColor: option.color }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-label={option.label}
+                    aria-pressed={isSelected}
+                    onClick={() => {
+                      setForm((current) => ({
+                        ...current,
+                        color: option.value,
+                      }));
+                    }}
+                    disabled={isPending}
+                    className={cn(
+                      'flex h-7.5 items-center justify-center rounded-lg border p-1 transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+                      isSelected
+                        ? 'border-primary bg-muted'
+                        : 'border-border bg-card hover:bg-muted',
+                    )}
+                  >
+                    <span
+                      className="h-full w-full rounded-[4px]"
+                      style={{ backgroundColor: option.color }}
+                    />
+                  </button>
+                );
+              })}
             </div>
+          </div>
 
-            <Button
-              type="submit"
-              disabled={!canSubmit}
-              className="h-12 w-full rounded-lg bg-primary px-4 text-[16px] font-medium text-primary-foreground shadow-none hover:bg-primary/90"
-            >
-              {isPending ? 'Salvando...' : 'Salvar'}
-            </Button>
-          </form>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+          <Button
+            type="submit"
+            disabled={!canSubmit}
+            className="h-12 w-full text-base font-medium"
+          >
+            {isPending ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
