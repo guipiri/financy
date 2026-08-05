@@ -5,6 +5,7 @@ import CategoriesPage from './pages/categories';
 import Dashboard from './pages/dashboard';
 import Signin from './pages/signin';
 import Signup from './pages/signup';
+import TransactionsPage from './pages/transactions';
 
 export const routes = {
   signin: {
@@ -29,7 +30,7 @@ export const routes = {
     isPrivate: true,
     name: 'Transações',
     path: '/transacoes',
-    component: () => <></>,
+    component: TransactionsPage,
   },
   categories: {
     isPrivate: true,

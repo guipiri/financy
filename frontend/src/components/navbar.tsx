@@ -16,11 +16,13 @@ import {
 
 function Navbar() {
   const { user } = useAuth();
-  const nameInitials = user.name
-    .split(' ')
-    .map((name) => name[0])
-    .join('')
-    .toUpperCase();
+  const nameInitials =
+    (user?.name ?? '')
+      .split(' ')
+      .filter(Boolean)
+      .map((name) => name[0])
+      .join('')
+      .toUpperCase() || 'U';
 
   const DesktopMenu = () => (
     <div className="hidden sm:flex sm:gap-5">

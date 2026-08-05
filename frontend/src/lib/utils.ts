@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCentsToBRL(cents: number | null | undefined) {
-  return (cents ?? 0 / 100).toLocaleString('pt-BR', {
+  return ((cents ?? 0) / 100).toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   });

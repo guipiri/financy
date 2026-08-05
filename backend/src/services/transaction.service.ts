@@ -1,10 +1,15 @@
 import { Service } from 'typedi';
+import type { Prisma } from '../../prisma/generated/client';
 import type {
   CreateTransactionInput,
+  TransactionFiltersInput,
   UpdateTransactionInput,
 } from '../dtos/input/transaction.input';
 import { prisma } from '../lib/prisma';
-import type { Transaction } from '../models/transaction.model';
+import type {
+  Transaction,
+  TransactionsOutput,
+} from '../models/transaction.model';
 
 @Service()
 export class TransactionService {
@@ -17,6 +22,49 @@ export class TransactionService {
       },
       orderBy: { date: 'desc' },
     });
+  }
+
+  async getTransactionsWithFilters(
+    userId: string,
+    filters?: TransactionFiltersInput,
+  ): Promise<TransactionsOutput> {
+    const page = filters?.page ?? 1;
+    const perPage = filters?.perPage ?? 10;
+    const where: Prisma.TransactionWhereInput = {
+      userId,
+      ...(filters?.search?.trim() && {
+        description: { contains: filters.search.trim() },
+      }),
+      ...(filters?.type && { type: filters.type }),
+      ...(filters?.categoryId && { categoryId: filters.categoryId }),
+      ...((filters?.dateFrom || filters?.dateTo) && {
+        date: {
+          ...(filters.dateFrom && { gte: filters.dateFrom }),
+          ...(filters.dateTo && { lte: filters.dateTo }),
+        },
+      }),
+    };
+
+    const [items, total] = await prisma.$transaction([
+      prisma.transaction.findMany({
+        where,
+        include: {
+          user: true,
+          category: true,
+        },
+        orderBy: { date: 'desc' },
+        skip: (page - 1) * perPage,
+        take: perPage,
+      }),
+      prisma.transaction.count({ where }),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      perPage,
+    };
   }
 
   async getTransactionById(id: string, userId: string): Promise<Transaction> {

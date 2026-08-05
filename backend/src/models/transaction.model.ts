@@ -46,3 +46,18 @@ export class Transaction {
   @Field(() => GraphQLISODateTime)
   updatedAt!: Date;
 }
+
+@ObjectType()
+export class TransactionsOutput {
+  @Field(() => [Transaction])
+  items!: Transaction[];
+
+  @Field(() => Int)
+  total!: number;
+
+  @Field(() => Int)
+  page!: number;
+
+  @Field(() => Int)
+  perPage!: number;
+}

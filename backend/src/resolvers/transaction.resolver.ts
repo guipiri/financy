@@ -2,11 +2,12 @@ import { Arg, Mutation, Query, Resolver, UseMiddleware } from 'type-graphql';
 import { Inject, Service } from 'typedi';
 import {
   CreateTransactionInput,
+  TransactionFiltersInput,
   UpdateTransactionInput,
 } from '../dtos/input/transaction.input';
 import { CurrentUser } from '../graphql/decorators';
 import { isAuthenticated } from '../middlewares/auth.middleware';
-import { Transaction } from '../models/transaction.model';
+import { Transaction, TransactionsOutput } from '../models/transaction.model';
 import type { User } from '../models/user.model';
 import { TransactionService } from '../services/transaction.service';
 
@@ -20,6 +21,15 @@ export class TransactionResolver {
   @Query(() => [Transaction])
   transactions(@CurrentUser() user: User): Promise<Transaction[]> {
     return this.transactionService.getTransactions(user.id);
+  }
+
+  @Query(() => TransactionsOutput)
+  transactionsPage(
+    @CurrentUser() user: User,
+    @Arg('filters', () => TransactionFiltersInput, { nullable: true })
+    filters?: TransactionFiltersInput,
+  ): Promise<TransactionsOutput> {
+    return this.transactionService.getTransactionsWithFilters(user.id, filters);
   }
 
   @Query(() => Transaction)

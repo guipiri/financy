@@ -7,10 +7,51 @@ import {
   IsPositive,
   IsString,
   IsUUID,
+  Min,
   MinLength,
 } from 'class-validator';
 import { Field, GraphQLISODateTime, InputType, Int } from 'type-graphql';
 import { TransactionType } from '../../../prisma/generated/enums';
+
+@InputType()
+export class TransactionFiltersInput {
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @Field(() => TransactionType, { nullable: true })
+  @IsOptional()
+  @IsEnum(TransactionType)
+  type?: TransactionType;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsUUID('4', { message: 'ID de categoria inválido' })
+  categoryId?: string;
+
+  @Field(() => GraphQLISODateTime, { nullable: true })
+  @IsOptional()
+  @IsDate()
+  dateFrom?: Date;
+
+  @Field(() => GraphQLISODateTime, { nullable: true })
+  @IsOptional()
+  @IsDate()
+  dateTo?: Date;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  perPage?: number;
+}
 
 @InputType()
 export class CreateTransactionInput {

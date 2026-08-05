@@ -57,6 +57,7 @@ type Query {
   fetchAll: [User!]!
   transaction(id: String!): Transaction!
   transactions: [Transaction!]!
+  transactionsPage(filters: TransactionFiltersInput): TransactionsOutput!
 }
 
 input SignInInput {
@@ -95,10 +96,27 @@ type Transaction {
   user: User!
 }
 
+input TransactionFiltersInput {
+  categoryId: String
+  dateFrom: DateTimeISO
+  dateTo: DateTimeISO
+  page: Int
+  perPage: Int
+  search: String
+  type: TransactionType
+}
+
 """Tipo da transação (INCOME ou EXPENSE)"""
 enum TransactionType {
   EXPENSE
   INCOME
+}
+
+type TransactionsOutput {
+  items: [Transaction!]!
+  page: Int!
+  perPage: Int!
+  total: Int!
 }
 
 input UpdateCategoryInput {
