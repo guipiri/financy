@@ -3,6 +3,7 @@ import { useAuth } from './contexts/AuthContext';
 import Layout from './layouts';
 import CategoriesPage from './pages/categories';
 import Dashboard from './pages/dashboard';
+import Profile from './pages/profile';
 import Signin from './pages/signin';
 import Signup from './pages/signup';
 import TransactionsPage from './pages/transactions';
@@ -37,6 +38,12 @@ export const routes = {
     name: 'Categorias',
     path: '/categorias',
     component: CategoriesPage,
+  },
+  profile: {
+    isPrivate: true,
+    name: 'Perfil',
+    path: '/perfil',
+    component: Profile,
   },
 };
 

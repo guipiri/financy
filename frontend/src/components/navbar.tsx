@@ -3,7 +3,7 @@ import { routes } from '@/App';
 import logo from '@/assets/financy-logo.svg';
 import logoIcon from '@/assets/logon-icon.png';
 import { useAuth } from '@/contexts/AuthContext';
-import { cn } from '@/lib/utils';
+import { cn, getInitialsFromName } from '@/lib/utils';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import {
   NavigationMenu,
@@ -16,13 +16,6 @@ import {
 
 function Navbar() {
   const { user } = useAuth();
-  const nameInitials =
-    (user?.name ?? '')
-      .split(' ')
-      .filter(Boolean)
-      .map((name) => name[0])
-      .join('')
-      .toUpperCase() || 'U';
 
   const DesktopMenu = () => (
     <div className="hidden sm:flex sm:gap-5">
@@ -89,9 +82,9 @@ function Navbar() {
         <MobileMenu />
 
         <NavigationMenuItem>
-          <NavigationMenuLink to={routes.signin.path} className="rounded-full">
+          <NavigationMenuLink to={routes.profile.path} className="rounded-full">
             <Avatar size="sm" className="cursor-pointer">
-              <AvatarFallback>{nameInitials}</AvatarFallback>
+              <AvatarFallback>{getInitialsFromName(user.name)}</AvatarFallback>
             </Avatar>
           </NavigationMenuLink>
         </NavigationMenuItem>

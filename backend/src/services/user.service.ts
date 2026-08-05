@@ -1,4 +1,5 @@
 import { Service } from 'typedi';
+import type { UpdateUserInput } from '../dtos/input/user.input';
 import { prisma } from '../lib/prisma';
 import type { User } from '../models/user.model';
 
@@ -16,5 +17,20 @@ export class UserService {
     const { password, ...userWithoutPassword } = user;
 
     return userWithoutPassword;
+  }
+
+  async updateUser(id: string, data: UpdateUserInput): Promise<User> {
+    const user = await this.findUserById(id);
+
+    if (!user) throw new Error('Usuário não encontrado.');
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: { name: data.name },
+    });
+
+    const { password, ...updatedUserWithoutPassword } = updatedUser;
+
+    return updatedUserWithoutPassword;
   }
 }

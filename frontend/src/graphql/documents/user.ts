@@ -9,3 +9,11 @@ export const ME_QUERY = gql(`
     }
   }
 `);
+
+export const UPDATE_USER_MUTATION = gql(`
+  mutation UpdateUser($data: UpdateUserInput!) {
+    updateUser(data: $data) {
+      name
+    }
+  }
+`);

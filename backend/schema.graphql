@@ -49,6 +49,7 @@ type Mutation {
   signUp(data: SignUpInput!): SignUpOutput!
   updateCategory(data: UpdateCategoryInput!, id: String!): Category!
   updateTransaction(data: UpdateTransactionInput!, id: String!): Transaction!
+  updateUser(data: UpdateUserInput!): User!
 }
 
 type Query {
@@ -140,6 +141,10 @@ input UpdateTransactionInput {
   date: DateTimeISO
   description: String
   type: TransactionType
+}
+
+input UpdateUserInput {
+  name: String!
 }
 
 type User {

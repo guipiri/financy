@@ -1,6 +1,15 @@
-import { Ctx, Query, Resolver, UseMiddleware } from 'type-graphql';
+import {
+  Arg,
+  Ctx,
+  Mutation,
+  Query,
+  Resolver,
+  UseMiddleware,
+} from 'type-graphql';
 import { Inject, Service } from 'typedi';
+import { UpdateUserInput } from '../dtos/input/user.input';
 import type { GraphqlContext } from '../graphql/context';
+import { CurrentUser } from '../graphql/decorators';
 import { isAuthenticated } from '../middlewares/auth.middleware';
 import { User } from '../models/user.model';
 import { UserService } from '../services/user.service';
@@ -29,5 +38,13 @@ export class UserResolver {
   @Query(() => [User])
   fetchAll(): Promise<User[]> {
     return this.userService.fetchAll();
+  }
+
+  @Mutation(() => User)
+  async updateUser(
+    @Arg('data', () => UpdateUserInput) args: UpdateUserInput,
+    @CurrentUser() user: User,
+  ): Promise<User> {
+    return this.userService.updateUser(user.id, args);
   }
 }

@@ -11,3 +11,11 @@ export function formatCentsToBRL(cents: number | null | undefined) {
     currency: 'BRL',
   });
 }
+
+export function getInitialsFromName(name: string) {
+  const split = name.split(' ');
+  return (
+    split[0].charAt(0).toUpperCase() +
+    split[split.length - 1].charAt(0).toUpperCase()
+  );
+}
