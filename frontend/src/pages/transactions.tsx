@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
 import { TransactionCreateDialog } from '@/components/transaction-create-dialog';
 import {
   type TransactionToEdit,
@@ -31,6 +33,7 @@ import {
 import { CategoryColorsMapper, CategoryIconsMapper } from '@/constants';
 import type { TransactionType } from '@/graphql/generated/graphql';
 import { useFetchCategoriesForDashboardQuery } from '@/hooks/api/useCategories';
+import { useDeleteTransactionMutation } from '@/hooks/api/useDeleteTransaction';
 import { useFetchTransactionsPageQuery } from '@/hooks/api/useTransactions';
 import { cn, formatCentsToBRL } from '@/lib/utils';
 import type { CategoryIcons, CategoryTones } from '@/types/category';
@@ -161,6 +164,11 @@ function ActionButton({
   );
 }
 
+type TransactionToDelete = {
+  id: string;
+  description: string;
+};
+
 export default function TransactionsPage() {
   const periodOptions = useMemo(() => buildPeriodOptions(), []);
   const [search, setSearch] = useState('');
@@ -171,6 +179,8 @@ export default function TransactionsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [transactionToEdit, setTransactionToEdit] =
     useState<TransactionToEdit | null>(null);
+  const [transactionToDelete, setTransactionToDelete] =
+    useState<TransactionToDelete | null>(null);
 
   const selectedPeriod = periodOptions.find(
     (option) => option.value === period,
@@ -189,6 +199,8 @@ export default function TransactionsPage() {
     useFetchCategoriesForDashboardQuery();
   const { data: transactionsData, isLoading: transactionsLoading } =
     useFetchTransactionsPageQuery(filters);
+  const { mutate: deleteTransaction, isPending: isDeleting } =
+    useDeleteTransactionMutation();
 
   const transactions = transactionsData?.transactionsPage.items ?? [];
   const total = transactionsData?.transactionsPage.total ?? 0;
@@ -197,6 +209,27 @@ export default function TransactionsPage() {
   const lastResult = Math.min(page * PER_PAGE, total);
 
   const resetPage = () => setPage(1);
+
+  const handleConfirmDelete = () => {
+    if (!transactionToDelete) return;
+
+    deleteTransaction(transactionToDelete.id, {
+      onSuccess: () => {
+        toast.success('Transação excluída com sucesso!');
+        setTransactionToDelete(null);
+      },
+      onError: (err) => {
+        const apiError =
+          (
+            err as unknown as {
+              response?: { errors?: { message: string }[] };
+            }
+          ).response?.errors?.[0]?.message ||
+          'Ocorreu um erro ao excluir a transação. Tente novamente.';
+        toast.error(apiError);
+      },
+    });
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
@@ -359,8 +392,14 @@ export default function TransactionsPage() {
                           <ActionButton
                             label={`Excluir transação ${transaction.description}`}
                             variant="danger"
+                            onClick={() =>
+                              setTransactionToDelete({
+                                id: transaction.id,
+                                description: transaction.description,
+                              })
+                            }
                           >
-                            <Trash className="size-4" />
+                            <Trash className="size-4 text-destructive" />
                           </ActionButton>
                           <ActionButton
                             label={`Editar transação ${transaction.description}`}
@@ -426,8 +465,14 @@ export default function TransactionsPage() {
                         <ActionButton
                           label={`Excluir transação ${transaction.description}`}
                           variant="danger"
+                          onClick={() =>
+                            setTransactionToDelete({
+                              id: transaction.id,
+                              description: transaction.description,
+                            })
+                          }
                         >
-                          <Trash className="size-4" />
+                          <Trash className="size-4 text-destructive" />
                         </ActionButton>
                         <ActionButton
                           label={`Editar transação ${transaction.description}`}
@@ -513,6 +558,22 @@ export default function TransactionsPage() {
         }}
         transaction={transactionToEdit}
       />
+
+      <ConfirmDeleteDialog
+        open={!!transactionToDelete}
+        onOpenChange={(open) => {
+          if (!open) setTransactionToDelete(null);
+        }}
+        title="Excluir transação"
+        description={
+          transactionToDelete
+            ? `Tem certeza que deseja excluir a transação "${transactionToDelete.description}"? Esta ação não poderá ser desfeita.`
+            : 'Esta ação não poderá ser desfeita.'
+        }
+        onConfirm={handleConfirmDelete}
+        isPending={isDeleting}
+      />
     </div>
   );
 }
+

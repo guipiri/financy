@@ -81,9 +81,16 @@ export class CategoryService {
   async deleteCategory(id: string, userId: string): Promise<boolean> {
     const category = await prisma.transactionCategory.findFirst({
       where: { id, userId },
+      include: { transactions: { select: { id: true } } },
     });
 
     if (!category) throw new Error('Categoria não encontrada.');
+
+    if (category.transactions.length > 0) {
+      throw new Error(
+        'Categoria não pode ser excluída pois possui transações. Antes, transfira as transações para outra categoria ou exclua-as.',
+      );
+    }
 
     await prisma.transactionCategory.delete({
       where: { id },

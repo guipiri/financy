@@ -1,16 +1,19 @@
 import { ArrowUpDown, Plus, SquarePen, Star, Tag, Trash } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { CategoryCreateDialog } from '@/components/category-create-dialog';
 import {
   CategoryEditDialog,
   type CategoryToEdit,
 } from '@/components/category-edit-dialog';
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CategoryColorsMapper, CategoryIconsMapper } from '@/constants';
 import type { FetchCategoriesForDashboardQuery } from '@/graphql/generated/graphql';
 import { useFetchCategoriesForDashboardQuery } from '@/hooks/api/useCategories';
+import { useDeleteCategoryMutation } from '@/hooks/api/useDeleteCategory';
 import { cn } from '@/lib/utils';
 import type { CategoryIcons, CategoryTones } from '@/types/category';
 import { CategoryPill } from './dashboard';
@@ -136,9 +139,14 @@ function SummarySection({ categories }: SummarySectionProps) {
 interface CategoriesListProps {
   categories: FetchCategoriesForDashboardQuery['categories'];
   onEditCategory: (category: CategoryToEdit) => void;
+  onDeleteCategory: (category: CategoryToEdit) => void;
 }
 
-function CategoriesList({ categories, onEditCategory }: CategoriesListProps) {
+function CategoriesList({
+  categories,
+  onEditCategory,
+  onDeleteCategory,
+}: CategoriesListProps) {
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {categories.map((category) => {
@@ -164,7 +172,10 @@ function CategoriesList({ categories, onEditCategory }: CategoriesListProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <ActionButton label={`Excluir categoria ${category.title}`}>
+                <ActionButton
+                  label={`Excluir categoria ${category.title}`}
+                  onClick={() => onDeleteCategory(category)}
+                >
                   <Trash className="size-4 text-destructive" />
                 </ActionButton>
                 <ActionButton
@@ -208,13 +219,44 @@ export default function CategoriesPage() {
   const [categoryToEdit, setCategoryToEdit] = useState<CategoryToEdit | null>(
     null,
   );
+  const [categoryToDelete, setCategoryToDelete] =
+    useState<CategoryToEdit | null>(null);
 
   const { data: categoriesData, isLoading: categoriesLoading } =
     useFetchCategoriesForDashboardQuery();
+  const { mutate: deleteCategory, isPending: isDeleting } =
+    useDeleteCategoryMutation();
 
   const handleEditCategory = (category: CategoryToEdit) => {
     setCategoryToEdit(category);
     setIsEditCategoryOpen(true);
+  };
+
+  const handleDeleteCategory = (category: CategoryToEdit) => {
+    setCategoryToDelete(category);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!categoryToDelete) return;
+
+    deleteCategory(categoryToDelete.id, {
+      onSuccess: () => {
+        toast.success('Categoria excluída com sucesso!');
+        setCategoryToDelete(null);
+      },
+      onError: (err) => {
+        console.log(err);
+
+        const apiError =
+          (
+            err as unknown as {
+              response?: { errors?: { message: string }[] };
+            }
+          ).response?.errors?.[0]?.message ||
+          'Ocorreu um erro ao excluir a categoria. Tente novamente.';
+        toast.error(apiError);
+      },
+    });
   };
 
   return (
@@ -250,6 +292,21 @@ export default function CategoriesPage() {
         category={categoryToEdit}
       />
 
+      <ConfirmDeleteDialog
+        open={!!categoryToDelete}
+        onOpenChange={(open) => {
+          if (!open) setCategoryToDelete(null);
+        }}
+        title="Excluir categoria"
+        description={
+          categoryToDelete
+            ? `Tem certeza que deseja excluir a categoria "${categoryToDelete.title}"? Esta ação não poderá ser desfeita.`
+            : 'Esta ação não poderá ser desfeita.'
+        }
+        onConfirm={handleConfirmDelete}
+        isPending={isDeleting}
+      />
+
       {categoriesLoading || !categoriesData?.categories ? (
         <p>Carregando...</p>
       ) : (
@@ -262,6 +319,7 @@ export default function CategoriesPage() {
         <CategoriesList
           categories={categoriesData.categories}
           onEditCategory={handleEditCategory}
+          onDeleteCategory={handleDeleteCategory}
         />
       )}
     </div>
