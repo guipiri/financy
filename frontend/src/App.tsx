@@ -1,9 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { useAuth } from './contexts/AuthContext';
+import Layout from './layouts';
+import CategoriesPage from './pages/categories';
 import Dashboard from './pages/dashboard';
 import Signin from './pages/signin';
 import Signup from './pages/signup';
-import CategoriesPage from './pages/categories';
 
 export const routes = {
   signin: {
@@ -26,10 +27,16 @@ export const routes = {
   },
   transactions: {
     isPrivate: true,
+    name: 'Transações',
+    path: '/transacoes',
+    component: () => <></>,
+  },
+  categories: {
+    isPrivate: true,
     name: 'Categorias',
     path: '/categorias',
     component: CategoriesPage,
-  }
+  },
 };
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -67,7 +74,9 @@ function App() {
             element={
               route.isPrivate ? (
                 <PrivateRoute>
-                  <route.component />
+                  <Layout>
+                    <route.component />
+                  </Layout>
                 </PrivateRoute>
               ) : (
                 <PublicRoute>
