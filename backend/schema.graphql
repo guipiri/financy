@@ -59,6 +59,7 @@ type Query {
   transaction(id: String!): Transaction!
   transactions: [Transaction!]!
   transactionsPage(filters: TransactionFiltersInput): TransactionsOutput!
+  transactionsSummary: TransactionSummary!
 }
 
 input SignInInput {
@@ -105,6 +106,12 @@ input TransactionFiltersInput {
   perPage: Int
   search: String
   type: TransactionType
+}
+
+type TransactionSummary {
+  monthExpenseInCents: Int!
+  monthIncomeInCents: Int!
+  totalBalanceInCents: Int!
 }
 
 """Tipo da transação (INCOME ou EXPENSE)"""

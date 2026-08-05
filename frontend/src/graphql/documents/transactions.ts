@@ -39,3 +39,13 @@ export const FETCH_TRANSACTIONS_PAGE_QUERY = gql(`
     }
   }
 `);
+
+export const FETCH_TRANSACTIONS_SUMMARY_QUERY = gql(`
+  query FetchTransactionsSummary {
+    transactionsSummary {
+      totalBalanceInCents
+      monthIncomeInCents
+      monthExpenseInCents
+    }
+  }
+`);

@@ -9,10 +9,64 @@ import { prisma } from '../lib/prisma';
 import type {
   Transaction,
   TransactionsOutput,
+  TransactionSummary,
 } from '../models/transaction.model';
 
 @Service()
 export class TransactionService {
+  async getTransactionSummary(userId: string): Promise<TransactionSummary> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+
+    const [totalIncome, totalExpense, monthIncome, monthExpense] =
+      await Promise.all([
+        prisma.transaction.aggregate({
+          where: { userId, type: 'INCOME' },
+          _sum: { amountInCents: true },
+        }),
+        prisma.transaction.aggregate({
+          where: { userId, type: 'EXPENSE' },
+          _sum: { amountInCents: true },
+        }),
+        prisma.transaction.aggregate({
+          where: {
+            userId,
+            type: 'INCOME',
+            date: { gte: startOfMonth, lte: endOfMonth },
+          },
+          _sum: { amountInCents: true },
+        }),
+        prisma.transaction.aggregate({
+          where: {
+            userId,
+            type: 'EXPENSE',
+            date: { gte: startOfMonth, lte: endOfMonth },
+          },
+          _sum: { amountInCents: true },
+        }),
+      ]);
+
+    const totalIncomeCents = totalIncome._sum.amountInCents ?? 0;
+    const totalExpenseCents = totalExpense._sum.amountInCents ?? 0;
+    const monthIncomeCents = monthIncome._sum.amountInCents ?? 0;
+    const monthExpenseCents = monthExpense._sum.amountInCents ?? 0;
+
+    return {
+      totalBalanceInCents: totalIncomeCents - totalExpenseCents,
+      monthIncomeInCents: monthIncomeCents,
+      monthExpenseInCents: monthExpenseCents,
+    };
+  }
+
   async getTransactions(userId: string): Promise<Transaction[]> {
     return prisma.transaction.findMany({
       where: { userId },

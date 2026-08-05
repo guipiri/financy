@@ -7,7 +7,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { routes } from '@/App';
 import { TransactionCreateDialog } from '@/components/transaction-create-dialog';
@@ -15,7 +15,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CategoryColorsMapper, CategoryIconsMapper } from '@/constants';
 import { useFetchCategoriesForDashboardQuery } from '@/hooks/api/useCategories';
-import { useFetchTransactionsQuery } from '@/hooks/api/useTransactions';
+import {
+  useFetchTransactionsPageQuery,
+  useFetchTransactionsSummaryQuery,
+} from '@/hooks/api/useTransactions';
 import { cn, formatCentsToBRL } from '@/lib/utils';
 import type { CategoryIcons, CategoryTones } from '@/types/category';
 
@@ -25,27 +28,6 @@ type SummaryCard = {
   icon: typeof Wallet;
   iconClassName: string;
 };
-
-const summaryCards: SummaryCard[] = [
-  {
-    title: 'Saldo total',
-    value: 'R$ 12.847,32',
-    icon: Wallet,
-    iconClassName: 'text-purple-base',
-  },
-  {
-    title: 'Receitas do mês',
-    value: 'R$ 4.250,00',
-    icon: ArrowUpCircle,
-    iconClassName: 'text-green-dark',
-  },
-  {
-    title: 'Despesas do mês',
-    value: 'R$ 2.180,45',
-    icon: ArrowDownCircle,
-    iconClassName: 'text-red-base',
-  },
-];
 
 export function CategoryPill({
   tone,
@@ -80,12 +62,40 @@ function SummaryIcon({
 
 function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { data: transactions, isLoading: transactionsIsLoading } =
-    useFetchTransactionsQuery();
+  const { data: summaryData, isLoading: summaryIsLoading } =
+    useFetchTransactionsSummaryQuery();
+  const { data: transactionsData, isLoading: transactionsIsLoading } =
+    useFetchTransactionsPageQuery({ perPage: 5, page: 1 });
 
   const { data: categories, isLoading: categoriesIsLoading } =
     useFetchCategoriesForDashboardQuery();
   const categoryItems = categories?.categories ?? [];
+  const recentTransactions = transactionsData?.transactionsPage.items ?? [];
+
+  const summaryCards: SummaryCard[] = useMemo(() => {
+    const summary = summaryData?.transactionsSummary;
+
+    return [
+      {
+        title: 'Saldo total',
+        value: formatCentsToBRL(summary?.totalBalanceInCents ?? 0),
+        icon: Wallet,
+        iconClassName: 'text-purple-base',
+      },
+      {
+        title: 'Receitas do mês',
+        value: formatCentsToBRL(summary?.monthIncomeInCents ?? 0),
+        icon: ArrowUpCircle,
+        iconClassName: 'text-green-dark',
+      },
+      {
+        title: 'Despesas do mês',
+        value: formatCentsToBRL(summary?.monthExpenseInCents ?? 0),
+        icon: ArrowDownCircle,
+        iconClassName: 'text-red-base',
+      },
+    ];
+  }, [summaryData]);
 
   return (
     <>
@@ -107,7 +117,7 @@ function Dashboard() {
                 </p>
               </div>
               <p className="text-lg sm:text-[1.75rem] font-bold leading-8 tracking-tight text-gray-800">
-                {card.value}
+                {summaryIsLoading ? '...' : card.value}
               </p>
             </div>
           </Card>
@@ -123,16 +133,25 @@ function Dashboard() {
               size="sm"
               className="h-auto gap-1 px-0 text-sm font-medium text-[#1f6f43] hover:bg-transparent hover:text-[#1f6f43]/80"
             >
-              Ver todas
-              <ChevronRight className="size-4" />
+              <Link
+                to={routes.transactions.path}
+                className="flex items-center gap-1"
+              >
+                Ver todas
+                <ChevronRight className="size-4" />
+              </Link>
             </Button>
           </div>
 
           <div className="divide-y divide-border">
             {transactionsIsLoading ? (
               <p className="text-center p-4">Carregando...</p>
+            ) : recentTransactions.length === 0 ? (
+              <p className="text-center p-4 text-gray-500">
+                Nenhuma transação encontrada
+              </p>
             ) : (
-              transactions?.transactions.map((transaction) => {
+              recentTransactions.map((transaction) => {
                 const CatIcon =
                   CategoryIconsMapper[
                     (transaction.category?.iconKey as CategoryIcons) ||

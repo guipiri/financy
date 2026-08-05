@@ -61,3 +61,15 @@ export class TransactionsOutput {
   @Field(() => Int)
   perPage!: number;
 }
+
+@ObjectType()
+export class TransactionSummary {
+  @Field(() => Int)
+  totalBalanceInCents!: number;
+
+  @Field(() => Int)
+  monthIncomeInCents!: number;
+
+  @Field(() => Int)
+  monthExpenseInCents!: number;
+}

@@ -7,7 +7,11 @@ import {
 } from '../dtos/input/transaction.input';
 import { CurrentUser } from '../graphql/decorators';
 import { isAuthenticated } from '../middlewares/auth.middleware';
-import { Transaction, TransactionsOutput } from '../models/transaction.model';
+import {
+  Transaction,
+  TransactionsOutput,
+  TransactionSummary,
+} from '../models/transaction.model';
 import type { User } from '../models/user.model';
 import { TransactionService } from '../services/transaction.service';
 
@@ -17,6 +21,13 @@ import { TransactionService } from '../services/transaction.service';
 export class TransactionResolver {
   @Inject(() => TransactionService)
   private readonly transactionService!: TransactionService;
+
+  @Query(() => TransactionSummary)
+  transactionsSummary(
+    @CurrentUser() user: User,
+  ): Promise<TransactionSummary> {
+    return this.transactionService.getTransactionSummary(user.id);
+  }
 
   @Query(() => [Transaction])
   transactions(@CurrentUser() user: User): Promise<Transaction[]> {
