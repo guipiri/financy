@@ -10,6 +10,11 @@ import {
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
+import { TransactionCreateDialog } from '@/components/transaction-create-dialog';
+import {
+  type TransactionToEdit,
+  TransactionUpdateDialog,
+} from '@/components/transaction-update-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Field, Input } from '@/components/ui/input';
@@ -132,10 +137,12 @@ function TransactionIcon({
 function ActionButton({
   label,
   variant = 'default',
+  onClick,
   children,
 }: {
   label: string;
   variant?: 'default' | 'danger';
+  onClick?: () => void;
   children: ReactNode;
 }) {
   return (
@@ -144,6 +151,7 @@ function ActionButton({
       variant="outline"
       size="icon"
       aria-label={label}
+      onClick={onClick}
       className="size-8 rounded-lg border-gray-300 bg-white text-gray-600 shadow-none hover:bg-gray-50"
     >
       <span className={variant === 'danger' ? 'text-danger' : 'text-gray-600'}>
@@ -160,6 +168,9 @@ export default function TransactionsPage() {
   const [categoryId, setCategoryId] = useState('ALL');
   const [period, setPeriod] = useState('all');
   const [page, setPage] = useState(1);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [transactionToEdit, setTransactionToEdit] =
+    useState<TransactionToEdit | null>(null);
 
   const selectedPeriod = periodOptions.find(
     (option) => option.value === period,
@@ -201,6 +212,7 @@ export default function TransactionsPage() {
 
         <Button
           type="button"
+          onClick={() => setCreateDialogOpen(true)}
           className="h-9 gap-2 rounded-lg bg-[#1f6f43] px-3 text-sm font-medium text-white shadow-none hover:bg-[#1f6f43]/90 sm:my-auto"
         >
           <Plus className="size-4" />
@@ -352,6 +364,7 @@ export default function TransactionsPage() {
                           </ActionButton>
                           <ActionButton
                             label={`Editar transação ${transaction.description}`}
+                            onClick={() => setTransactionToEdit(transaction)}
                           >
                             <SquarePen className="size-4" />
                           </ActionButton>
@@ -418,6 +431,7 @@ export default function TransactionsPage() {
                         </ActionButton>
                         <ActionButton
                           label={`Editar transação ${transaction.description}`}
+                          onClick={() => setTransactionToEdit(transaction)}
                         >
                           <SquarePen className="size-4" />
                         </ActionButton>
@@ -487,6 +501,18 @@ export default function TransactionsPage() {
           </div>
         </footer>
       </Card>
+
+      <TransactionCreateDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
+      <TransactionUpdateDialog
+        open={!!transactionToEdit}
+        onOpenChange={(open) => {
+          if (!open) setTransactionToEdit(null);
+        }}
+        transaction={transactionToEdit}
+      />
     </div>
   );
 }

@@ -218,52 +218,52 @@ export default function CategoriesPage() {
   };
 
   return (
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 ">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-[24px] font-bold leading-8 tracking-tight text-gray-800">
-              Categorias
-            </h1>
-            <p className="text-[16px] leading-6 text-gray-600">
-              Organize suas transações por categorias
-            </p>
-          </div>
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 ">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-[24px] font-bold leading-8 tracking-tight text-gray-800">
+            Categorias
+          </h1>
+          <p className="text-[16px] leading-6 text-gray-600">
+            Organize suas transações por categorias
+          </p>
+        </div>
 
-          <Button
-            type="button"
-            onClick={() => setIsCreateCategoryOpen(true)}
-            className="h-9 gap-2 my-auto rounded-lg bg-[#1f6f43] px-3 text-sm font-medium text-white shadow-none hover:bg-[#1f6f43]/90"
-          >
-            <Plus className="size-4" />
-            Nova categoria
-          </Button>
-        </header>
+        <Button
+          type="button"
+          onClick={() => setIsCreateCategoryOpen(true)}
+          className="h-9 gap-2 my-auto rounded-lg bg-[#1f6f43] px-3 text-sm font-medium text-white shadow-none hover:bg-[#1f6f43]/90"
+        >
+          <Plus className="size-4" />
+          Nova categoria
+        </Button>
+      </header>
 
-        <CategoryCreateDialog
-          open={isCreateCategoryOpen}
-          onOpenChange={setIsCreateCategoryOpen}
+      <CategoryCreateDialog
+        open={isCreateCategoryOpen}
+        onOpenChange={setIsCreateCategoryOpen}
+      />
+
+      <CategoryEditDialog
+        open={isEditCategoryOpen}
+        onOpenChange={setIsEditCategoryOpen}
+        category={categoryToEdit}
+      />
+
+      {categoriesLoading || !categoriesData?.categories ? (
+        <p>Carregando...</p>
+      ) : (
+        <SummarySection categories={categoriesData.categories} />
+      )}
+
+      {categoriesLoading || !categoriesData?.categories ? (
+        <p>Carregando...</p>
+      ) : (
+        <CategoriesList
+          categories={categoriesData.categories}
+          onEditCategory={handleEditCategory}
         />
-
-        <CategoryEditDialog
-          open={isEditCategoryOpen}
-          onOpenChange={setIsEditCategoryOpen}
-          category={categoryToEdit}
-        />
-
-        {categoriesLoading || !categoriesData?.categories ? (
-          <p>Carregando...</p>
-        ) : (
-          <SummarySection categories={categoriesData.categories} />
-        )}
-
-        {categoriesLoading || !categoriesData?.categories ? (
-          <p>Carregando...</p>
-        ) : (
-          <CategoriesList
-            categories={categoriesData.categories}
-            onEditCategory={handleEditCategory}
-          />
-        )}
-      </div>
+      )}
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 /**
  * Valida se um e-mail é válido.
- * 
+ *
  * @param email - O e-mail a ser validado.
  * @returns true se o e-mail for válido, false caso contrário.
  */

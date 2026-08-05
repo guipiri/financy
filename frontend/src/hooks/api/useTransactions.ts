@@ -19,6 +19,7 @@ export function useFetchTransactionsQuery() {
   });
 }
 
+export const transactionsQueryKey = ['transactions'] as const;
 export const transactionsPageQueryKey = ['transactions-page'] as const;
 
 export function useFetchTransactionsPageQuery(
