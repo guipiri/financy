@@ -218,8 +218,7 @@ export default function CategoriesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 text-gray-800">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-8 md:px-10 lg:px-12">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 ">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <h1 className="text-[24px] font-bold leading-8 tracking-tight text-gray-800">
@@ -266,6 +265,5 @@ export default function CategoriesPage() {
           />
         )}
       </div>
-    </main>
   );
 }
