@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "codegen": "npm run codegen --workspace=frontend",
     "format": "npx biome format --write ."
   },
   "keywords": [],
