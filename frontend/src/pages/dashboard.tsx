@@ -33,17 +33,20 @@ type SummaryCard = {
 export function CategoryPill({
   tone,
   label,
+  className,
 }: {
   tone: CategoryTones;
   label: string;
+  className?: string;
 }) {
   const { resolvedTheme } = useTheme();
   const theme = resolvedTheme === 'dark' ? 'dark' : 'light';
   return (
     <p
       className={cn(
-        'items-center rounded-full px-3 py-1 text-sm font-medium text-center truncate',
+        'items-center rounded-full px-3 py-1 text-xs sm:text-sm font-medium text-center truncate max-w-full',
         CategoryColorsMapper[tone][theme],
+        className,
       )}
     >
       {label}
@@ -104,28 +107,28 @@ function Dashboard() {
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />
-      <div className="mx-auto flex flex-col md:grid md:grid-cols-3 md:grid-rows-[auto_1fr] w-full max-w-7xl gap-6">
+      <div className="mx-auto grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 lg:grid-rows-[auto_1fr] w-full max-w-7xl gap-4 sm:gap-6">
         {summaryCards.map((card) => (
           <Card
             key={card.title}
-            className="rounded-[12px] p-4 sm:p-6 shadow-xs"
+            className="col-span-1 rounded-[12px] p-4 sm:p-6 shadow-xs"
           >
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               <div className="flex items-center gap-3">
                 <SummaryIcon icon={card.icon} className={card.iconClassName} />
                 <p className="text-xs font-medium uppercase tracking-[0.06em] text-gray-500">
                   {card.title}
                 </p>
               </div>
-              <p className="text-lg sm:text-[1.75rem] font-bold leading-8 tracking-tight text-gray-800">
+              <p className="text-xl sm:text-[1.75rem] font-bold leading-7 sm:leading-8 tracking-tight text-gray-800">
                 {summaryIsLoading ? '...' : card.value}
               </p>
             </div>
           </Card>
         ))}
 
-        <Card className="col-span-2 overflow-hidden p-0 sm:p-0 shadow-xs h-fit">
-          <div className="flex items-center justify-between border-b border-border px-6 pb-[21px] pt-5">
+        <Card className="col-span-1 sm:col-span-3 lg:col-span-2 overflow-hidden p-0 sm:p-0 shadow-xs h-fit">
+          <div className="flex items-center justify-between border-b border-border px-4 sm:px-6 py-4 sm:pb-[21px] sm:pt-5">
             <p className="text-xs font-medium uppercase tracking-[0.06em] text-gray-500">
               Transações recentes
             </p>
@@ -146,9 +149,9 @@ function Dashboard() {
 
           <div className="divide-y divide-border">
             {transactionsIsLoading ? (
-              <p className="text-center p-4">Carregando...</p>
+              <p className="text-center p-4 text-sm">Carregando...</p>
             ) : recentTransactions.length === 0 ? (
-              <p className="text-center p-4 text-gray-500">
+              <p className="text-center p-4 text-sm text-gray-500">
                 Nenhuma transação encontrada
               </p>
             ) : (
@@ -163,12 +166,12 @@ function Dashboard() {
                 return (
                   <div
                     key={`${transaction.description}-${transaction.date}`}
-                    className="flex min-h-20 items-center px-6 py-4"
+                    className="flex min-h-16 sm:min-h-20 items-center justify-between px-4 sm:px-6 py-3 sm:py-4 gap-1 sm:gap-2 lg:gap-3"
                   >
-                    <div className="flex flex-1 items-center gap-4 pr-4">
+                    <div className="flex flex-1 items-center gap-3 sm:gap-4 min-w-0 pr-2 sm:pr-4">
                       <div
                         className={cn(
-                          'flex size-10 shrink-0 items-center justify-center rounded-lg',
+                          'flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-lg',
                           CategoryColorsMapper[
                             (transaction.category?.color as CategoryTones) ||
                               'blue'
@@ -186,17 +189,31 @@ function Dashboard() {
                         />
                       </div>
 
-                      <div className="min-w-0">
-                        <p className="truncate text-base font-medium leading-6 text-gray-800">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm sm:text-base font-medium leading-5 sm:leading-6 text-gray-800">
                           {transaction.description}
                         </p>
-                        <p className="text-sm leading-5 text-gray-600">
+                        <p className="text-sm leading-5 text-gray-600 hidden sm:block">
                           {date.toLocaleDateString()}
                         </p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1 sm:hidden">
+                          <span className="text-xs text-gray-600">
+                            {date.toLocaleDateString()}
+                          </span>
+                          <CategoryPill
+                            tone={
+                              (transaction.category?.color as CategoryTones) ||
+                              'blue'
+                            }
+                            label={
+                              transaction.category?.title || 'Sem categoria'
+                            }
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex w-[160px] justify-center px-4">
+                    <div className="hidden sm:flex w-[110px] md:w-[160px] justify-center px-2 md:px-4 shrink-0">
                       <CategoryPill
                         tone={
                           (transaction.category?.color as CategoryTones) ||
@@ -206,7 +223,7 @@ function Dashboard() {
                       />
                     </div>
 
-                    <div className="flex w-[160px] items-center justify-end gap-2 px-4">
+                    <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0 sm:w-[140px] md:w-[160px] sm:px-2 md:px-4">
                       <p className="text-sm font-semibold whitespace-nowrap text-gray-800">
                         {formatCentsToBRL(transaction.amountInCents)}
                       </p>
@@ -225,7 +242,7 @@ function Dashboard() {
             )}
           </div>
 
-          <div className="border-t border-border px-6 py-5">
+          <div className="border-t border-border px-4 sm:px-6 py-4 sm:py-5">
             <Button
               onClick={() => setIsDialogOpen(true)}
               variant="ghost"
@@ -238,8 +255,8 @@ function Dashboard() {
           </div>
         </Card>
 
-        <Card className="p-0 sm:p-0 shadow-xs h-fit">
-          <div className="flex items-center justify-between border-b border-border px-6 py-5">
+        <Card className="col-span-1 sm:col-span-3 lg:col-span-1 p-0 sm:p-0 shadow-xs h-fit">
+          <div className="flex items-center justify-between border-b border-border px-4 sm:px-6 py-4 sm:py-5">
             <p className="text-xs font-medium uppercase tracking-[0.06em] text-gray-500">
               Categorias
             </p>
@@ -248,27 +265,41 @@ function Dashboard() {
               size="sm"
               className="h-auto gap-1 px-0 text-sm font-medium text-[#1f6f43] hover:bg-transparent hover:text-[#1f6f43]/80"
             >
-              <Link to={routes.categories.path}>Gerenciar</Link>
-              <ChevronRight className="size-4" />
+              <Link
+                to={routes.categories.path}
+                className="flex items-center gap-1"
+              >
+                Gerenciar
+                <ChevronRight className="size-4" />
+              </Link>
             </Button>
           </div>
 
-          <div className="space-y-5 px-6 py-6">
+          <div className="space-y-4 sm:space-y-5 px-4 sm:px-6 py-4 sm:py-6">
             {categoriesIsLoading ? (
-              <p>Carregando...</p>
+              <p className="text-center text-sm text-gray-500 py-2">
+                Carregando...
+              </p>
             ) : (
               categoryItems.map((category) => (
-                <div key={category.id} className="flex items-center gap-1">
-                  <CategoryPill
-                    tone={category.color as CategoryTones}
-                    label={category.title}
-                  />
-                  <p className="min-w-0 flex-1 text-right text-sm text-gray-600">
-                    {formatItemsLabel(category.items?.qty ?? 0)}
-                  </p>
-                  <p className="w-[88px] text-right text-sm font-semibold text-gray-800">
-                    {formatCentsToBRL(category.items?.amountIncents ?? 0)}
-                  </p>
+                <div
+                  key={category.id}
+                  className="flex items-center justify-between gap-2 sm:gap-4"
+                >
+                  <div className="min-w-0 max-w-[50%] sm:max-w-[60%] lg:max-w-[50%]">
+                    <CategoryPill
+                      tone={category.color as CategoryTones}
+                      label={category.title}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-auto text-right">
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {formatItemsLabel(category.items?.qty ?? 0)}
+                    </p>
+                    <p className="min-w-[70px] sm:min-w-[88px] text-right text-xs sm:text-sm font-semibold text-gray-800">
+                      {formatCentsToBRL(category.items?.amountIncents ?? 0)}
+                    </p>
+                  </div>
                 </div>
               ))
             )}
