@@ -82,35 +82,13 @@ npm run codegen
 
 ### 5. Executar a Aplicação
 
-Você pode executar o backend e o frontend de duas formas:
+Para iniciar o **Backend** e o **Frontend** simultaneamente, execute o comando abaixo na raiz do projeto:
 
-#### Opção A: Executando a partir da Raiz do Projeto (Recomendado)
+```bash
+npm run dev
+```
 
-Abra **dois terminais** na raiz do projeto:
-
-- **Terminal 1 (Backend):**
-  ```bash
-  npm run dev:backend
-  ```
-
-- **Terminal 2 (Frontend):**
-  ```bash
-  npm run dev:frontend
-  ```
-
-#### Opção B: Executando Entrando em Cada Pasta
-
-- **Terminal 1 (Backend):**
-  ```bash
-  cd backend
-  npm run dev
-  ```
-
-- **Terminal 2 (Frontend):**
-  ```bash
-  cd frontend
-  npm run dev
-  ```
+> 💡 **Nota:** Este comando inicia ambos os serviços em paralelo usando `npm-run-all`. Caso queira executar apenas um dos serviços individualmente, você pode usar `npm run dev:backend` ou `npm run dev:frontend`.
 
 ---
 
