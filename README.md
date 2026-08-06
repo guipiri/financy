@@ -59,13 +59,13 @@ VITE_API_URL=http://localhost:4000/graphql
 
 ### 3. Configurar o Banco de Dados (SQLite + Prisma)
 
-Antes de iniciar a API pela primeira vez, prepare o banco de dados executando as migrações e a geração do Prisma Client:
+**Não é necessário criar o arquivo do banco de dados manualmente.** O Prisma cria o arquivo `dev.db` automaticamente ao sincronizar o schema com o banco:
 
 ```bash
-cd backend
-npx prisma db push
-cd ..
+npm run db:push
 ```
+
+*(Ou se preferir executar dentro da pasta `backend`, rode `npx prisma db push`).*
 
 ---
 

@@ -7,6 +7,7 @@
     "dev:backend": "npm run dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
     "codegen": "npm run codegen --workspace=frontend",
+    "db:push": "npm run db:push --workspace=backend",
     "format": "npx biome format --write ."
   },
   "keywords": [],
