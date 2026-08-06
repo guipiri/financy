@@ -20,9 +20,7 @@ function Navbar() {
   const DesktopMenu = () => (
     <div className="hidden sm:flex sm:gap-5">
       <NavigationMenuItem>
-        <NavigationMenuLink to={routes.dashboard.path}>
-          Dashboard
-        </NavigationMenuLink>
+        <NavigationMenuLink to={routes.home.path}>Dashboard</NavigationMenuLink>
       </NavigationMenuItem>
 
       <NavigationMenuItem>
@@ -40,7 +38,7 @@ function Navbar() {
   );
 
   const DesktopLogo = () => (
-    <NavigationMenuLink to={routes.dashboard.path} className="hidden sm:block">
+    <NavigationMenuLink to={routes.home.path} className="hidden sm:block">
       <img className={cn('h-5 w-25')} src={logo} alt="Logo" />
     </NavigationMenuLink>
   );
@@ -51,9 +49,7 @@ function Navbar() {
         <Menu />
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <NavigationMenuLink to={routes.dashboard.path}>
-          Dashboard
-        </NavigationMenuLink>
+        <NavigationMenuLink to={routes.home.path}>Dashboard</NavigationMenuLink>
         <NavigationMenuLink to={routes.transactions.path}>
           Transações
         </NavigationMenuLink>
@@ -65,7 +61,7 @@ function Navbar() {
   );
 
   const MobileLogo = () => (
-    <NavigationMenuLink to={routes.dashboard.path} className="sm:hidden">
+    <NavigationMenuLink to={routes.home.path} className="sm:hidden">
       <img className="h-8 w-8" src={logoIcon} alt="Logo" />
     </NavigationMenuLink>
   );

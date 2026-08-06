@@ -21,6 +21,7 @@ import {
 } from '@/hooks/api/useTransactions';
 import { cn, formatCentsToBRL } from '@/lib/utils';
 import type { CategoryIcons, CategoryTones } from '@/types/category';
+import { formatItemsLabel } from './categories';
 
 type SummaryCard = {
   title: string;
@@ -263,7 +264,7 @@ function Dashboard() {
                     label={category.title}
                   />
                   <p className="min-w-0 flex-1 text-right text-sm text-gray-600">
-                    {category.items?.qty ?? 0}
+                    {formatItemsLabel(category.items?.qty ?? 0)}
                   </p>
                   <p className="w-[88px] text-right text-sm font-semibold text-gray-800">
                     {formatCentsToBRL(category.items?.amountIncents ?? 0)}

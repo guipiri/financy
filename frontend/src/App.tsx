@@ -2,30 +2,23 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { useAuth } from './contexts/AuthContext';
 import Layout from './layouts';
 import CategoriesPage from './pages/categories';
-import Dashboard from './pages/dashboard';
+import Home from './pages/home';
 import Profile from './pages/profile';
-import Signin from './pages/signin';
 import Signup from './pages/signup';
 import TransactionsPage from './pages/transactions';
 
 export const routes = {
-  signin: {
-    isPrivate: false,
-    name: 'Login',
-    path: '/login',
-    component: Signin,
-  },
   signup: {
     isPrivate: false,
     name: 'Cadastro',
     path: '/criar-conta',
     component: Signup,
   },
-  dashboard: {
-    isPrivate: true,
-    name: 'Dashboard',
+  home: {
+    isPrivate: false,
+    name: 'Home',
     path: '/',
-    component: Dashboard,
+    component: Home,
   },
   transactions: {
     isPrivate: true,
@@ -55,7 +48,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? (
     <>{children}</>
   ) : (
-    <Navigate to={routes.signin.path} replace />
+    <Navigate to={routes.home.path} replace />
   );
 };
 
@@ -67,7 +60,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   return !isAuthenticated ? (
     <>{children}</>
   ) : (
-    <Navigate to={routes.dashboard.path} replace />
+    <Navigate to={routes.home.path} replace />
   );
 };
 
@@ -87,9 +80,9 @@ function App() {
                   </Layout>
                 </PrivateRoute>
               ) : (
-                <PublicRoute>
-                  <route.component />
-                </PublicRoute>
+                // <PublicRoute>
+                <route.component />
+                // </PublicRoute>
               )
             }
           />

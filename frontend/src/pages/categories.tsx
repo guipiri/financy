@@ -34,7 +34,7 @@ function getToneClasses(tone: CategoryTones) {
   };
 }
 
-function formatItemsLabel(quantity: number) {
+export function formatItemsLabel(quantity: number) {
   return quantity === 1 ? '1 item' : `${quantity} itens`;
 }
 
@@ -245,8 +245,6 @@ export default function CategoriesPage() {
         setCategoryToDelete(null);
       },
       onError: (err) => {
-        console.log(err);
-
         const apiError =
           (
             err as unknown as {

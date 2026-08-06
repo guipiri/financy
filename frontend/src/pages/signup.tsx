@@ -52,7 +52,7 @@ export function Signup() {
           data.signUp.refreshToken,
         );
         toast.success('Cadastro realizado com sucesso!');
-        navigate(routes.dashboard.path);
+        navigate(routes.home.path);
       },
       onError: (err) => {
         const apiError =
@@ -211,7 +211,7 @@ export function Signup() {
             variant="outline"
             className="w-full text-gray-700 rounded-lg flex items-center justify-center gap-2"
             disabled={isPending}
-            onClick={() => navigate(routes.signin.path)}
+            onClick={() => navigate(routes.home.path)}
           >
             <LogIn className="size-4 text-foreground" />
             <span>Fazer login</span>

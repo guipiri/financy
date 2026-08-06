@@ -58,7 +58,7 @@ export function Signin() {
           data.signIn.refreshToken,
         );
         toast.success('Login realizado com sucesso!');
-        navigate(routes.dashboard.path);
+        navigate(routes.home.path);
       },
       onError: (err) => {
         const apiError =
